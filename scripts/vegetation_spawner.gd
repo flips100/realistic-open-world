@@ -3,11 +3,11 @@ extends Node3D
 
 @export var terrain_path: NodePath
 
-const TREE_COUNT := 420
-const PINE_COUNT := 200
-const ROCK_COUNT := 260
-const BUSH_COUNT := 340
-const GRASS_TUFT_COUNT := 2200
+const TREE_COUNT := 520
+const PINE_COUNT := 260
+const ROCK_COUNT := 280
+const BUSH_COUNT := 400
+const GRASS_TUFT_COUNT := 2800
 const SPREAD := 240.0
 
 
@@ -64,7 +64,7 @@ func _foliage_material(tint: Color, wind: float = 0.28) -> ShaderMaterial:
 	mat.set_shader_parameter("roughness", 0.8)
 	mat.set_shader_parameter("wind_strength", wind)
 	mat.set_shader_parameter("wind_speed", 0.9)
-	mat.set_shader_parameter("translucency", 0.24)
+	mat.set_shader_parameter("translucency", 0.32)
 	return mat
 
 
@@ -116,7 +116,7 @@ func _spawn_deciduous(terrain: Node) -> void:
 	trunk.bottom_radius = 0.34
 	trunk.height = 3.2
 	trunk.radial_segments = 12
-	trunk.material = _bark_material(Color(0.38, 0.24, 0.13, 1.0))
+	trunk.material = _bark_material(Color(0.45, 0.30, 0.16, 1.0))
 
 	var trunk_mm := MultiMesh.new()
 	trunk_mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -131,13 +131,13 @@ func _spawn_deciduous(terrain: Node) -> void:
 
 	# Irregular multi-blob crown (3-4 spheres) -- less lollipop
 	var canopy := SphereMesh.new()
-	canopy.radius = 1.25
-	canopy.height = 1.85
+	canopy.radius = 1.35
+	canopy.height = 2.0
 	canopy.radial_segments = 14
 	canopy.rings = 8
-	canopy.material = _foliage_material(Color(0.17, 0.42, 0.15, 1.0), 0.32)
+	canopy.material = _foliage_material(Color(0.30, 0.52, 0.22, 1.0), 0.30)
 
-	var blobs_per := 4
+	var blobs_per := 5
 	var canopy_mm := MultiMesh.new()
 	canopy_mm.transform_format = MultiMesh.TRANSFORM_3D
 	canopy_mm.mesh = canopy
@@ -150,16 +150,18 @@ func _spawn_deciduous(terrain: Node) -> void:
 	add_child(canopy_mmi)
 
 	var offsets := [
-		Vector3(0.0, 3.6, 0.0),
-		Vector3(0.55, 4.2, 0.25),
-		Vector3(-0.5, 4.0, -0.35),
-		Vector3(0.15, 4.85, 0.1),
+		Vector3(0.0, 3.5, 0.0),
+		Vector3(0.7, 4.1, 0.35),
+		Vector3(-0.65, 3.95, -0.4),
+		Vector3(0.2, 4.9, 0.15),
+		Vector3(-0.25, 4.55, 0.55),
 	]
 	var scales := [
-		Vector3(1.15, 0.95, 1.1),
-		Vector3(0.85, 0.75, 0.9),
-		Vector3(0.8, 0.7, 0.85),
-		Vector3(0.65, 0.6, 0.7),
+		Vector3(1.25, 1.0, 1.2),
+		Vector3(0.95, 0.8, 1.0),
+		Vector3(0.9, 0.75, 0.95),
+		Vector3(0.7, 0.65, 0.75),
+		Vector3(0.75, 0.7, 0.8),
 	]
 
 	for i in range(count):
@@ -185,7 +187,7 @@ func _spawn_pines(terrain: Node) -> void:
 	trunk.bottom_radius = 0.24
 	trunk.height = 5.0
 	trunk.radial_segments = 10
-	trunk.material = _bark_material(Color(0.30, 0.20, 0.12, 1.0))
+	trunk.material = _bark_material(Color(0.36, 0.24, 0.14, 1.0))
 
 	var trunk_mm := MultiMesh.new()
 	trunk_mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -202,9 +204,9 @@ func _spawn_pines(terrain: Node) -> void:
 	cone.bottom_radius = 1.55
 	cone.height = 2.4
 	cone.radial_segments = 12
-	cone.material = _foliage_material(Color(0.10, 0.28, 0.15, 1.0), 0.18)
+	cone.material = _foliage_material(Color(0.18, 0.40, 0.22, 1.0), 0.16)
 
-	var layers := 4
+	var layers := 5
 	var cone_mm := MultiMesh.new()
 	cone_mm.transform_format = MultiMesh.TRANSFORM_3D
 	cone_mm.mesh = cone
@@ -235,7 +237,7 @@ func _spawn_rocks(terrain: Node) -> void:
 	rock.radial_segments = 12
 	rock.rings = 7
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.50, 0.48, 0.45)
+	mat.albedo_color = Color(0.62, 0.60, 0.56)
 	mat.roughness = 0.94
 	mat.albedo_texture = _noise_tex(777, 0.09, false, 512)
 	mat.normal_enabled = true
@@ -282,7 +284,7 @@ func _spawn_bushes(terrain: Node) -> void:
 	bush.height = 0.9
 	bush.radial_segments = 10
 	bush.rings = 5
-	bush.material = _foliage_material(Color(0.22, 0.44, 0.18, 1.0), 0.45)
+	bush.material = _foliage_material(Color(0.34, 0.55, 0.24, 1.0), 0.42)
 
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -314,7 +316,7 @@ func _spawn_grass_tufts(terrain: Node) -> void:
 	blade.height = 0.55
 	blade.radial_segments = 4
 	blade.rings = 2
-	blade.material = _foliage_material(Color(0.25, 0.48, 0.16, 1.0), 0.7)
+	blade.material = _foliage_material(Color(0.38, 0.58, 0.22, 1.0), 0.65)
 
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
