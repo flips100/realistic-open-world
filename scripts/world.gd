@@ -1,11 +1,18 @@
 extends Node3D
-## Open-world scene: cinematic daylight, volumetric fog, water, atmosphere, player, crystals.
+## Open-world scene: photographic daylight, PhysicalSky, volumetric atmosphere, water, player, crystals.
 
 const CollectibleScript := preload("res://scripts/collectible.gd")
 const PlayerScript := preload("res://scripts/player.gd")
 const AmbientAudioScript := preload("res://scripts/ambient_audio.gd")
 const WaterPlaneScript := preload("res://scripts/water_plane.gd")
 const AtmosphereFxScript := preload("res://scripts/atmosphere_fx.gd")
+
+## Performance knobs -- flip these for mid/low GPUs (see README).
+const ENABLE_VOLUMETRIC_FOG := true
+const ENABLE_SSR := true
+const ENABLE_SSIL := true
+const ENABLE_DOF := false  # subtle far blur; off by default for clarity + perf
+const SHADOW_MAX_DISTANCE := 280.0
 
 @onready var terrain: Node3D = $Terrain
 @onready var world_env: WorldEnvironment = $WorldEnvironment
@@ -29,98 +36,135 @@ func _setup_environment() -> void:
 	var env := Environment.new()
 	env.background_mode = Environment.BG_SKY
 
-	# Photographic daylight sky (PhysicalSky when available, Procedural fallback)
+	# PhysicalSky -- Rayleigh/Mie photographic daylight (Godot 4 Forward+)
 	var sky := Sky.new()
-	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_top_color = Color(0.22, 0.42, 0.72)
-	sky_mat.sky_horizon_color = Color(0.85, 0.72, 0.55)  # warm golden-hour haze
-	sky_mat.ground_bottom_color = Color(0.18, 0.16, 0.12)
-	sky_mat.ground_horizon_color = Color(0.62, 0.55, 0.42)
-	sky_mat.sun_angle_max = 28.0
-	sky_mat.sky_curve = 0.12
-	sky_mat.ground_curve = 0.08
-	sky.sky_material = sky_mat
+	var physical := PhysicalSkyMaterial.new()
+	physical.rayleigh_color = Color(0.3, 0.405, 0.6)
+	physical.mie_color = Color(0.85, 0.72, 0.55)
+	physical.turbidity = 4.2
+	physical.ground_color = Color(0.22, 0.18, 0.12)
+	physical.energy_multiplier = 1.05
+	sky.sky_material = physical
 	env.sky = sky
-	env.sky_rotation = Vector3(0, 0.3, 0)
-
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.48
+	env.ambient_light_energy = 0.42
 	env.ambient_light_sky_contribution = 1.0
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 
-	# Filmic / ACES tonemap for photographic contrast
+	# ACES filmic tonemap -- camera-like contrast
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
-	env.tonemap_exposure = 0.98
-	env.tonemap_white = 6.0
+	env.tonemap_exposure = 0.92
+	env.tonemap_white = 5.5
 
-	# Distance fog matching warm horizon
+	# Atmospheric depth fog matching warm horizon haze
 	env.fog_enabled = true
 	env.fog_mode = Environment.FOG_MODE_DEPTH
-	env.fog_light_color = Color(0.82, 0.74, 0.62)
-	env.fog_density = 0.0012
-	env.fog_aerial_perspective = 0.55
-	env.fog_sky_affect = 0.75
-	env.fog_depth_begin = 70.0
-	env.fog_depth_end = 320.0
-	env.fog_depth_curve = 0.85
+	env.fog_light_color = Color(0.78, 0.70, 0.58)
+	env.fog_density = 0.0010
+	env.fog_aerial_perspective = 0.65
+	env.fog_sky_affect = 0.8
+	env.fog_depth_begin = 60.0
+	env.fog_depth_end = 340.0
+	env.fog_depth_curve = 0.8
 
-	# Volumetric fog (Forward+): soft god-ray haze
-	env.volumetric_fog_enabled = true
-	env.volumetric_fog_density = 0.008
-	env.volumetric_fog_albedo = Color(0.85, 0.78, 0.68)
-	env.volumetric_fog_emission = Color(0.15, 0.12, 0.08)
-	env.volumetric_fog_emission_energy = 0.02
-	env.volumetric_fog_anisotropy = 0.35
-	env.volumetric_fog_length = 128.0
-	env.volumetric_fog_detail_spread = 0.7
-	env.volumetric_fog_ambient_inject = 0.35
-	env.volumetric_fog_sky_affect = 0.5
+	if ENABLE_VOLUMETRIC_FOG:
+		env.volumetric_fog_enabled = true
+		env.volumetric_fog_density = 0.0065
+		env.volumetric_fog_albedo = Color(0.88, 0.82, 0.72)
+		env.volumetric_fog_emission = Color(0.12, 0.10, 0.07)
+		env.volumetric_fog_emission_energy = 0.015
+		env.volumetric_fog_anisotropy = 0.4
+		env.volumetric_fog_length = 140.0
+		env.volumetric_fog_detail_spread = 0.65
+		env.volumetric_fog_ambient_inject = 0.4
+		env.volumetric_fog_sky_affect = 0.55
+	else:
+		env.volumetric_fog_enabled = false
 
+	# Careful glow -- highlight bloom only
 	env.glow_enabled = true
-	env.glow_intensity = 0.42
-	env.glow_strength = 0.9
-	env.glow_bloom = 0.12
-	env.glow_hdr_threshold = 0.85
+	env.glow_intensity = 0.32
+	env.glow_strength = 0.85
+	env.glow_bloom = 0.06
+	env.glow_hdr_threshold = 0.95
+	env.glow_hdr_scale = 1.5
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
+	env.set_glow_level(1, 0.0)
+	env.set_glow_level(2, 0.55)
+	env.set_glow_level(3, 0.85)
+	env.set_glow_level(4, 0.45)
+	env.set_glow_level(5, 0.18)
 
+	# Strong SSAO for photographic contact shadowing
 	env.ssao_enabled = true
-	env.ssao_radius = 1.8
-	env.ssao_intensity = 2.0
-	env.ssao_power = 1.5
-	env.ssao_detail = 0.5
-	env.ssao_horizon = 0.06
+	env.ssao_radius = 2.0
+	env.ssao_intensity = 2.4
+	env.ssao_power = 1.6
+	env.ssao_detail = 0.65
+	env.ssao_horizon = 0.05
+	env.ssao_sharpness = 0.7
 
-	env.ssr_enabled = true
-	env.ssr_max_steps = 48
-	env.ssr_fade_in = 0.15
-	env.ssr_fade_out = 2.0
-	env.ssr_depth_tolerance = 0.2
+	if ENABLE_SSIL:
+		env.ssil_enabled = true
+		env.ssil_radius = 4.0
+		env.ssil_intensity = 0.85
+		env.ssil_sharpness = 0.7
+	else:
+		env.ssil_enabled = false
 
+	if ENABLE_SSR:
+		env.ssr_enabled = true
+		env.ssr_max_steps = 64
+		env.ssr_fade_in = 0.12
+		env.ssr_fade_out = 2.2
+		env.ssr_depth_tolerance = 0.18
+	else:
+		env.ssr_enabled = false
+
+	# Camera-like color grading
 	env.adjustment_enabled = true
-	env.adjustment_brightness = 1.02
-	env.adjustment_contrast = 1.06
-	env.adjustment_saturation = 1.08
+	env.adjustment_brightness = 1.0
+	env.adjustment_contrast = 1.1
+	env.adjustment_saturation = 1.05
 
 	world_env.environment = env
 
+	# Auto-exposure (slow adapt) via CameraAttributes -- stable, photographic
+	var attrs := CameraAttributesPractical.new()
+	attrs.auto_exposure_enabled = true
+	attrs.auto_exposure_scale = 0.4
+	attrs.auto_exposure_speed = 0.6
+	attrs.auto_exposure_min_sensitivity = 40.0
+	attrs.auto_exposure_max_sensitivity = 400.0
+	if ENABLE_DOF:
+		attrs.dof_blur_far_enabled = true
+		attrs.dof_blur_far_distance = 90.0
+		attrs.dof_blur_far_transition = 45.0
+		attrs.dof_blur_amount = 0.07
+	world_env.camera_attributes = attrs
+
 
 func _setup_sun() -> void:
-	# Golden-hour / late afternoon sun -- warm key light
-	sun.light_color = Color(1.0, 0.88, 0.68)
-	sun.light_energy = 1.55
-	sun.light_angular_distance = 0.6
+	# ~5200K late-afternoon sun (warm physical-ish)
+	sun.light_color = Color(1.0, 0.90, 0.72)
+	sun.light_energy = 1.65
+	sun.light_angular_distance = 0.55
+	sun.light_specular = 0.85
 	sun.shadow_enabled = true
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
-	sun.directional_shadow_max_distance = 300.0
-	sun.shadow_blur = 1.25
-	sun.directional_shadow_pancake_size = 4.0
-	# Low warm angle
-	sun.rotation_degrees = Vector3(-38, -42, 0)
+	sun.directional_shadow_max_distance = SHADOW_MAX_DISTANCE
+	sun.shadow_blur = 1.4
+	sun.directional_shadow_pancake_size = 3.5
+	sun.directional_shadow_split_1 = 0.08
+	sun.directional_shadow_split_2 = 0.22
+	sun.directional_shadow_split_3 = 0.5
+	sun.rotation_degrees = Vector3(-36, -40, 0)
 
-	fill_light.light_color = Color(0.45, 0.58, 0.82)
-	fill_light.light_energy = 0.22
+	fill_light.light_color = Color(0.48, 0.62, 0.88)
+	fill_light.light_energy = 0.18
+	fill_light.light_specular = 0.2
 	fill_light.shadow_enabled = false
-	fill_light.rotation_degrees = Vector3(-25, 130, 0)
+	fill_light.rotation_degrees = Vector3(-28, 135, 0)
 
 
 func _spawn_systems() -> void:
@@ -192,22 +236,32 @@ func _spawn_landmark() -> void:
 	landmark.position = Vector3(8, center_y, -12)
 
 	var stone_mat := StandardMaterial3D.new()
-	stone_mat.albedo_color = Color(0.52, 0.51, 0.50)
-	stone_mat.roughness = 0.94
+	stone_mat.albedo_color = Color(0.50, 0.49, 0.47)
+	stone_mat.roughness = 0.92
 	var n := FastNoiseLite.new()
-	n.frequency = 0.12
+	n.frequency = 0.11
 	n.seed = 44
+	n.fractal_octaves = 4
 	var ntex := NoiseTexture2D.new()
 	ntex.noise = n
-	ntex.width = 256
-	ntex.height = 256
+	ntex.width = 512
+	ntex.height = 512
 	ntex.seamless = true
 	ntex.as_normal_map = true
+	ntex.bump_strength = 10.0
+	ntex.generate_mipmaps = true
+	var atex := NoiseTexture2D.new()
+	atex.noise = n
+	atex.width = 512
+	atex.height = 512
+	atex.seamless = true
+	atex.generate_mipmaps = true
 	stone_mat.normal_enabled = true
 	stone_mat.normal_texture = ntex
-	stone_mat.albedo_texture = ntex
+	stone_mat.normal_scale = 1.1
+	stone_mat.albedo_texture = atex
 	stone_mat.uv1_triplanar = true
-	stone_mat.uv1_scale = Vector3(2, 2, 2)
+	stone_mat.uv1_scale = Vector3(1.8, 1.8, 1.8)
 
 	for i in range(5):
 		var stone := MeshInstance3D.new()
@@ -236,12 +290,12 @@ func _spawn_landmark() -> void:
 	cyl.height = 0.4
 	pedestal.mesh = cyl
 	var pmat := StandardMaterial3D.new()
-	pmat.albedo_color = Color(0.42, 0.44, 0.48)
-	pmat.roughness = 0.55
-	pmat.metallic = 0.25
+	pmat.albedo_color = Color(0.40, 0.42, 0.46)
+	pmat.roughness = 0.5
+	pmat.metallic = 0.28
 	pmat.emission_enabled = true
-	pmat.emission = Color(0.25, 0.55, 0.7)
-	pmat.emission_energy_multiplier = 0.45
+	pmat.emission = Color(0.2, 0.48, 0.62)
+	pmat.emission_energy_multiplier = 0.35
 	pedestal.material_override = pmat
 	pedestal.position.y = 0.2
 	landmark.add_child(pedestal)
