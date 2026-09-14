@@ -25,6 +25,7 @@ func _process(delta: float) -> void:
 
 
 func _build_preview_backdrop() -> void:
+	# Replace flat grey with a live stylized WorldEnvironment preview
 	var old_bg := get_node_or_null("Background")
 	if old_bg:
 		old_bg.visible = false
@@ -57,7 +58,7 @@ func _build_preview_backdrop() -> void:
 	sky_mat.sky_horizon_color = Color(0.95, 0.72, 0.5)
 	sky_mat.ground_bottom_color = Color(0.25, 0.3, 0.2)
 	sky_mat.ground_horizon_color = Color(0.7, 0.6, 0.45)
-	sky_mat.sky_energy_multiplier = 1.3
+	sky_mat.sky_energy_multiplier = 1.4
 	sky.sky_material = sky_mat
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
@@ -75,6 +76,7 @@ func _build_preview_backdrop() -> void:
 	sun.rotation_degrees = Vector3(-40, -50, 0)
 	_preview_root.add_child(sun)
 
+	# Ground disc
 	var ground := MeshInstance3D.new()
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(80, 80)
@@ -85,13 +87,14 @@ func _build_preview_backdrop() -> void:
 	ground.material_override = gmat
 	_preview_root.add_child(ground)
 
+	# Simple stylized trees for backdrop
 	var trunk_mat := StandardMaterial3D.new()
 	trunk_mat.albedo_color = Color(0.4, 0.26, 0.14)
 	var leaf_mat := StandardMaterial3D.new()
 	leaf_mat.albedo_color = Color(0.28, 0.52, 0.24)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 13
-	for i in range(18):
+	for i in range(22):
 		var tree := Node3D.new()
 		var ang := rng.randf() * TAU
 		var rad := rng.randf_range(8.0, 28.0)
@@ -118,6 +121,7 @@ func _build_preview_backdrop() -> void:
 			tree.add_child(crown)
 		_preview_root.add_child(tree)
 
+	# Lake patch
 	var lake := MeshInstance3D.new()
 	var lake_mesh := PlaneMesh.new()
 	lake_mesh.size = Vector2(18, 14)
@@ -142,9 +146,13 @@ func _build_preview_backdrop() -> void:
 	cam.current = true
 	cam.fov = 48.0
 	cam.position = Vector3(0, 2.5, 14)
-	cam.look_at(Vector3(0, 1.5, 0))
 	_cam_pivot.add_child(cam)
+	# look_at requires node in tree
+	var look_target := Vector3(0, 1.5, 0)
+	if cam.global_position.distance_squared_to(look_target) > 0.01:
+		cam.look_at(look_target, Vector3.UP)
 
+	# Soft vignette overlays stay on top of existing WarmOverlay / GradientOverlay
 	var warm := get_node_or_null("WarmOverlay")
 	if warm:
 		warm.color = Color(0.55, 0.32, 0.12, 0.18)
