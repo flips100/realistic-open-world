@@ -1,28 +1,28 @@
 extends CharacterBody3D
-## Third-person controller with camera smoothing, sprint FOV kick, landing feel, footsteps.
+## Third-person controller: filmic FOV, grounded locomotion, camera smoothing, footsteps.
 
-const WALK_SPEED := 6.0
-const SPRINT_SPEED := 11.0
-const JUMP_VELOCITY := 8.5
-const MOUSE_SENSITIVITY := 0.0025
-const ACCELERATION := 14.0
-const AIR_ACCELERATION := 4.0
-const DECELERATION := 16.0
-const CAMERA_MIN_PITCH := -1.2
-const CAMERA_MAX_PITCH := 0.55
-const CAMERA_DISTANCE := 5.2
-const CAMERA_HEIGHT := 1.65
-const BASE_FOV := 68.0
-const SPRINT_FOV := 76.0
-const FOV_LERP := 6.0
-const CAMERA_SMOOTH := 14.0
-const LANDING_THRESHOLD := -4.5
+const WALK_SPEED := 5.8
+const SPRINT_SPEED := 10.5
+const JUMP_VELOCITY := 8.2
+const MOUSE_SENSITIVITY := 0.0024
+const ACCELERATION := 12.0
+const AIR_ACCELERATION := 3.5
+const DECELERATION := 15.0
+const CAMERA_MIN_PITCH := -1.15
+const CAMERA_MAX_PITCH := 0.5
+const CAMERA_DISTANCE := 5.0
+const CAMERA_HEIGHT := 1.6
+const BASE_FOV := 62.0   # slightly filmic / photographic vs game-wide 75+
+const SPRINT_FOV := 70.0
+const FOV_LERP := 5.0
+const CAMERA_SMOOTH := 12.0
+const LANDING_THRESHOLD := -4.0
 
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _yaw: float = 0.0
-var _pitch: float = -0.22
+var _pitch: float = -0.2
 var _target_yaw: float = 0.0
-var _target_pitch: float = -0.22
+var _target_pitch: float = -0.2
 var _camera_pivot: Node3D
 var _spring_arm: SpringArm3D
 var _camera: Camera3D
@@ -35,6 +35,7 @@ var _footstep_timer: float = 0.0
 var _footstep_player: AudioStreamPlayer3D
 var _terrain: Node = null
 var _bob_time: float = 0.0
+var _strafe_roll: float = 0.0
 
 
 func _ready() -> void:
@@ -60,9 +61,9 @@ func _build_visuals() -> void:
 	capsule.height = 1.6
 	body.mesh = capsule
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.28, 0.38, 0.48)
-	mat.roughness = 0.78
-	mat.metallic = 0.08
+	mat.albedo_color = Color(0.26, 0.34, 0.42)
+	mat.roughness = 0.82
+	mat.metallic = 0.06
 	body.material_override = mat
 	body.position.y = 0.9
 	_visual.add_child(body)
@@ -73,8 +74,8 @@ func _build_visuals() -> void:
 	sphere.height = 0.44
 	head.mesh = sphere
 	var hmat := StandardMaterial3D.new()
-	hmat.albedo_color = Color(0.82, 0.68, 0.55)
-	hmat.roughness = 0.7
+	hmat.albedo_color = Color(0.80, 0.66, 0.52)
+	hmat.roughness = 0.72
 	head.material_override = hmat
 	head.position = Vector3(0, 1.55, 0)
 	_visual.add_child(head)
@@ -84,7 +85,7 @@ func _build_visuals() -> void:
 	nose_mesh.size = Vector3(0.1, 0.07, 0.22)
 	nose.mesh = nose_mesh
 	var nmat := StandardMaterial3D.new()
-	nmat.albedo_color = Color(0.22, 0.32, 0.42)
+	nmat.albedo_color = Color(0.2, 0.28, 0.36)
 	nose.material_override = nmat
 	nose.position = Vector3(0, 1.5, -0.28)
 	_visual.add_child(nose)
@@ -106,15 +107,16 @@ func _build_camera() -> void:
 
 	_spring_arm = SpringArm3D.new()
 	_spring_arm.spring_length = CAMERA_DISTANCE
-	_spring_arm.margin = 0.25
+	_spring_arm.margin = 0.22
 	_spring_arm.collision_mask = 1
 	_camera_pivot.add_child(_spring_arm)
 
 	_camera = Camera3D.new()
 	_camera.fov = BASE_FOV
 	_camera.current = true
-	_camera.near = 0.08
-	_camera.far = 500.0
+	_camera.near = 0.07
+	_camera.far = 520.0
+	_camera.keep_aspect = Camera3D.KEEP_HEIGHT
 	_spring_arm.add_child(_camera)
 
 
@@ -128,7 +130,6 @@ func _build_audio() -> void:
 
 
 func _make_footstep_stream(surface: String) -> AudioStreamWAV:
-	## Tiny procedural one-shot (commercial-safe).
 	var sample_rate := 22050
 	var duration := 0.07
 	var n := int(sample_rate * duration)
@@ -178,26 +179,28 @@ func _physics_process(delta: float) -> void:
 	if not _can_control or GameManager.is_paused:
 		return
 
-	# Smooth camera follow (yaw/pitch lerp)
 	_yaw = lerp_angle(_yaw, _target_yaw, 1.0 - exp(-CAMERA_SMOOTH * delta))
 	_pitch = lerpf(_pitch, _target_pitch, 1.0 - exp(-CAMERA_SMOOTH * delta))
-	var cam_rot := Vector3(_pitch + _landing_punch, _yaw, 0.0)
+
+	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	var want_roll := -input_dir.x * 0.025
+	_strafe_roll = lerpf(_strafe_roll, want_roll, 1.0 - exp(-6.0 * delta))
+
+	var cam_rot := Vector3(_pitch + _landing_punch, _yaw, _strafe_roll)
 	_camera_pivot.rotation = cam_rot
-	_landing_punch = lerpf(_landing_punch, 0.0, 1.0 - exp(-10.0 * delta))
+	_landing_punch = lerpf(_landing_punch, 0.0, 1.0 - exp(-9.0 * delta))
 
 	var on_floor_now := is_on_floor()
 	if not on_floor_now:
 		velocity.y -= gravity * delta
 
-	# Landing feel
 	if on_floor_now and not _was_on_floor and velocity.y < LANDING_THRESHOLD:
-		_landing_punch = clampf(velocity.y * 0.02, -0.12, 0.0)
+		_landing_punch = clampf(velocity.y * 0.018, -0.1, 0.0)
 	_was_on_floor = on_floor_now
 
 	if Input.is_action_just_pressed("jump") and on_floor_now:
 		velocity.y = JUMP_VELOCITY
 
-	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var cam_basis := Basis.from_euler(Vector3(0, _yaw, 0))
 	var direction := (cam_basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 
@@ -214,33 +217,31 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0, decel * delta * WALK_SPEED)
 		velocity.z = move_toward(velocity.z, 0, decel * delta * WALK_SPEED)
 
-	_visual.rotation.y = lerp_angle(_visual.rotation.y, _mesh_yaw, 12.0 * delta)
+	_visual.rotation.y = lerp_angle(_visual.rotation.y, _mesh_yaw, 10.0 * delta)
 
-	# Subtle head bob via spring arm
 	var horiz_speed := Vector2(velocity.x, velocity.z).length()
 	if on_floor_now and horiz_speed > 0.5:
-		_bob_time += delta * (horiz_speed * 0.35)
-		_spring_arm.position.y = sin(_bob_time) * 0.04
+		_bob_time += delta * (horiz_speed * 0.32)
+		_spring_arm.position.y = sin(_bob_time) * 0.035
+		_spring_arm.position.x = cos(_bob_time * 0.5) * 0.012
 	else:
-		_spring_arm.position.y = lerpf(_spring_arm.position.y, 0.0, 8.0 * delta)
+		_spring_arm.position.y = lerpf(_spring_arm.position.y, 0.0, 7.0 * delta)
+		_spring_arm.position.x = lerpf(_spring_arm.position.x, 0.0, 7.0 * delta)
 
-	# Sprint FOV kick
 	var want_fov := SPRINT_FOV if sprinting else BASE_FOV
 	_camera.fov = lerpf(_camera.fov, want_fov, 1.0 - exp(-FOV_LERP * delta))
 
 	move_and_slide()
 
-	# Footsteps by surface
 	if on_floor_now and horiz_speed > 1.2:
 		_footstep_timer -= delta
-		var interval := 0.38 if sprinting else 0.52
+		var interval := 0.4 if sprinting else 0.55
 		if _footstep_timer <= 0.0:
 			_footstep_timer = interval
 			_play_footstep()
 	else:
 		_footstep_timer = 0.1
 
-	# Soft world bounds
 	var limit := 220.0
 	var pos := global_position
 	if absf(pos.x) > limit or absf(pos.z) > limit:
