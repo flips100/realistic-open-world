@@ -183,9 +183,9 @@ func _color_for(p: Vector3) -> Color:
 	var dz := get_height_at(p.x, p.z + 1.0) - get_height_at(p.x, p.z - 1.0)
 	var slope := sqrt(dx * dx + dz * dz)
 
-	var grass := Color(0.28, 0.48, 0.22)
-	var dirt := Color(0.42, 0.31, 0.18)
-	var rock := Color(0.44, 0.44, 0.47)
+	var grass := Color(0.40, 0.60, 0.28)
+	var dirt := Color(0.55, 0.40, 0.24)
+	var rock := Color(0.58, 0.56, 0.54)
 	var snow := Color(0.92, 0.94, 0.97)
 
 	var c: Color
@@ -198,5 +198,5 @@ func _color_for(p: Vector3) -> Color:
 		c = grass.lerp(dirt, clampf(slope / 10.0, 0.0, 0.55))
 		if h > 28.0:
 			c = c.lerp(rock, clampf((h - 28.0) / 14.0, 0.0, 1.0))
-	var shade := 0.86 + detail_noise.get_noise_2d(p.x, p.z) * 0.16
+	var shade := 0.92 + detail_noise.get_noise_2d(p.x, p.z) * 0.14
 	return Color(c.r * shade, c.g * shade, c.b * shade, 1.0)

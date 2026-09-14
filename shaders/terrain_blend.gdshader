@@ -27,10 +27,10 @@ uniform float water_level : hint_range(-5.0, 20.0) = 3.5;
 uniform float wetness_distance : hint_range(0.5, 20.0) = 6.0;
 uniform float ao_strength : hint_range(0.0, 1.0) = 0.35;
 
-uniform vec3 grass_tint : source_color = vec3(0.28, 0.48, 0.20);
-uniform vec3 dirt_tint : source_color = vec3(0.42, 0.30, 0.17);
-uniform vec3 rock_tint : source_color = vec3(0.46, 0.45, 0.48);
-uniform vec3 cliff_tint : source_color = vec3(0.34, 0.33, 0.36);
+uniform vec3 grass_tint : source_color = vec3(0.38, 0.58, 0.26);
+uniform vec3 dirt_tint : source_color = vec3(0.55, 0.40, 0.24);
+uniform vec3 rock_tint : source_color = vec3(0.58, 0.56, 0.55);
+uniform vec3 cliff_tint : source_color = vec3(0.48, 0.46, 0.45);
 uniform vec3 snow_tint : source_color = vec3(0.90, 0.93, 0.96);
 
 varying vec3 v_world_pos;
@@ -112,9 +112,9 @@ void fragment() {
 	wet *= (1.0 - slope_w) * smoothstep(0.15, 0.55, 1.0 - slope);
 	ground = mix(ground, ground * vec3(0.55, 0.58, 0.62), wet * 0.65);
 
-	ground *= mix(vec3(0.90), COLOR.rgb * 1.12, 0.5);
+	ground *= mix(vec3(0.96), COLOR.rgb * 1.18, 0.45);
 	// Cheap contact AO from slope concavity proxy
-	float ao = mix(1.0, 0.72 + micro * 0.2, ao_strength * (0.35 + slope * 0.4));
+	float ao = mix(1.0, 0.82 + micro * 0.18, ao_strength * (0.28 + slope * 0.35));
 	ground *= ao;
 
 	float rough_tex = triplanar_r(detail_rough, v_world_pos, wn, scale);
