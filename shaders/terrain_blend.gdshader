@@ -12,7 +12,7 @@ uniform sampler2D cliff_albedo : source_color, filter_linear_mipmap_anisotropic,
 uniform sampler2D snow_albedo : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D detail_normal : hint_normal, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D detail_rough : hint_default_white, filter_linear_mipmap_anisotropic, repeat_enable;
-uniform sampler2D macro_noise : hint_default_white, filter_linear_mipmap, repeat_enable;
+uniform sampler2D macro_noise : hint_default_white, filter_linear_mipmap_anisotropic, repeat_enable;
 
 uniform float uv_scale : hint_range(1.0, 200.0) = 36.0;
 uniform float uv_scale_detail : hint_range(0.5, 80.0) = 12.0;
@@ -88,7 +88,6 @@ void fragment() {
 	vec3 cliff = triplanar_albedo(cliff_albedo, v_world_pos, wn, scale * 0.55) * cliff_tint;
 	vec3 snow = triplanar_albedo(snow_albedo, v_world_pos, wn, scale * 0.7) * snow_tint;
 
-	// Dual-scale albedo to break tiling (macro + detail)
 	grass = mix(grass, grass * (0.85 + macro * 0.3), 0.45);
 	dirt = mix(dirt, dirt * (0.8 + micro * 0.35), 0.4);
 	rock *= 0.88 + micro * 0.22;
@@ -107,20 +106,18 @@ void fragment() {
 	snow_w *= (1.0 - slope * 0.75) * smoothstep(0.25, 0.7, macro);
 	ground = mix(ground, snow, clamp(snow_w, 0.0, 1.0));
 
-	// Shoreline / basin wetness -- darker, glossier near water
 	float wet = 1.0 - smoothstep(water_level, water_level + wetness_distance, h);
 	wet *= (1.0 - slope_w) * smoothstep(0.15, 0.55, 1.0 - slope);
 	ground = mix(ground, ground * vec3(0.55, 0.58, 0.62), wet * 0.65);
 
 	ground *= mix(vec3(0.96), COLOR.rgb * 1.18, 0.45);
-	// Cheap contact AO from slope concavity proxy
 	float ao = mix(1.0, 0.82 + micro * 0.18, ao_strength * (0.28 + slope * 0.35));
 	ground *= ao;
 
 	float rough_tex = triplanar_r(detail_rough, v_world_pos, wn, scale);
 	float rough = mix(roughness_base, 0.96, slope_w * 0.7);
 	rough = mix(rough, 0.55 + rough_tex * 0.35, 0.55);
-	rough = mix(rough, 0.18 + rough_tex * 0.12, wet); // wet = glossy
+	rough = mix(rough, 0.18 + rough_tex * 0.12, wet);
 	rough = mix(rough, 0.92, clamp(snow_w, 0.0, 1.0) * 0.5);
 
 	ALBEDO = ground;
