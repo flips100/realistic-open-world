@@ -24,13 +24,13 @@ func _ready() -> void:
 func _on_crystals_changed(collected: int, total: int) -> void:
 	crystal_label.text = "%d / %d" % [collected, total]
 	var remaining := total - collected
-	objjective_label.modulate.a = 1.0
+	objective_label.modulate.a = 1.0
 	if remaining > 0:
-		objjective_label.text = "Find %d crystal%s hidden across the valley" % [
+		objective_label.text = "Find %d crystal%s hidden across the valley" % [
 			remaining, "s" if remaining != 1 else ""
 		]
 	else:
-		objjective_label.text = "All crystals recovered"
+		objective_label.text = "All crystals recovered"
 	var tw := create_tween()
 	tw.tween_interval(5.0)
 	tw.tween_property(objective_label, "modulate:a", 0.3, 1.2)
