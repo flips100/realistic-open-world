@@ -8,7 +8,7 @@
 
 [sub_resource type="Environment" id="Environment_placeholder"]
 background_mode = 1
-background_color = Color(0.45, 0.6, 0.75, 1)
+background_color = Color(0.45, 0.55, 0.65, 1)
 
 [node name="World" type="Node3D"]
 script = ExtResource("1_world")
@@ -17,17 +17,19 @@ script = ExtResource("1_world")
 environment = SubResource("Environment_placeholder")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 40, 80, 30)
-light_color = Color(1, 0.96, 0.88, 1)
-light_energy = 1.35
+transform = Transform3D(0.743145, -0.422618, 0.519837, 0, 0.766044, 0.642788, -0.669131, -0.477714, 0.569128, 40, 80, 30)
+light_color = Color(1, 0.88, 0.68, 1)
+light_energy = 1.55
+light_angular_distance = 0.6
 shadow_enabled = true
 directional_shadow_mode = 1
-directional_shadow_max_distance = 280.0
+directional_shadow_max_distance = 300.0
+shadow_blur = 1.25
 
 [node name="FillLight" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.707107, -0.353553, -0.612372, 0, 0.866025, -0.5, 0.707107, -0.353553, -0.612372, -20, 40, -30)
-light_color = Color(0.55, 0.65, 0.85, 1)
-light_energy = 0.25
+transform = Transform3D(-0.642788, -0.262003, -0.71934, 0, 0.939693, -0.34202, 0.766044, -0.219846, -0.604023, -20, 40, -30)
+light_color = Color(0.45, 0.58, 0.82, 1)
+light_energy = 0.22
 shadow_enabled = false
 
 [node name="Terrain" type="Node3D" parent="."]

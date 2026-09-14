@@ -3,15 +3,20 @@
 [ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_menu"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.08, 0.1, 0.14, 0.92)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-content_margin_left = 32
-content_margin_top = 28
-content_margin_right = 32
-content_margin_bottom = 28
+bg_color = Color(0.06, 0.08, 0.1, 0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.65, 0.7, 0.35)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 36
+content_margin_top = 32
+content_margin_right = 36
+content_margin_bottom = 32
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -29,7 +34,16 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.18, 0.32, 0.42, 1)
+color = Color(0.22, 0.32, 0.38, 1)
+
+[node name="WarmOverlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.55, 0.35, 0.15, 0.22)
 
 [node name="GradientOverlay" type="ColorRect" parent="."]
 layout_mode = 1
@@ -38,7 +52,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.05, 0.12, 0.08, 0.45)
+color = Color(0.04, 0.08, 0.06, 0.4)
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -54,20 +68,20 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="VBox" type="VBoxContainer" parent="Center/Panel"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 14
 
 [node name="Title" type="Label" parent="Center/Panel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.92, 0.95, 0.98, 1)
-theme_override_font_sizes/font_size = 42
+theme_override_colors/font_color = Color(0.95, 0.94, 0.9, 1)
+theme_override_font_sizes/font_size = 40
 text = "Realistic Open World"
 horizontal_alignment = 1
 
 [node name="Subtitle" type="Label" parent="Center/Panel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.82, 0.75, 1)
-theme_override_font_sizes/font_size = 16
-text = "Explore a procedural valley. Collect 8 crystals to restore the land."
+theme_override_colors/font_color = Color(0.78, 0.82, 0.75, 1)
+theme_override_font_sizes/font_size = 15
+text = "A cinematic procedural valley. Collect 8 crystals to restore the land."
 horizontal_alignment = 1
 autowrap_mode = 2
 
@@ -77,21 +91,20 @@ layout_mode = 2
 
 [node name="StartButton" type="Button" parent="Center/Panel/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(260, 48)
+custom_minimum_size = Vector2(280, 48)
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Start Adventure"
+theme_override_font_sizes/font_size = 18
+text = "Enter the Valley"
 
 [node name="QuitButton" type="Button" parent="Center/Panel/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(260, 40)
+custom_minimum_size = Vector2(280, 40)
 layout_mode = 2
 text = "Quit"
 
 [node name="Footer" type="Label" parent="Center/Panel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 0.6, 0.65, 1)
-theme_override_font_sizes/font_size = 12
-text = "WASD move · Mouse look · Shift sprint · Space jump · Esc pause
-MIT License — free for commercial use"
+theme_override_colors/font_color = Color(0.55, 0.58, 0.6, 1)
+theme_override_font_sizes/font_size = 11
+text = "WASD · Mouse · Shift sprint · Space jump · Esc pause\nForward+ recommended · MIT License"
 horizontal_alignment = 1

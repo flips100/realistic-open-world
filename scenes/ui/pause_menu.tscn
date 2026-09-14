@@ -3,15 +3,20 @@
 [ext_resource type="Script" path="res://scripts/pause_menu.gd" id="1_pause"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pause"]
-bg_color = Color(0.07, 0.09, 0.12, 0.95)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-content_margin_left = 36
-content_margin_top = 28
-content_margin_right = 36
-content_margin_bottom = 28
+bg_color = Color(0.05, 0.07, 0.09, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.5, 0.55, 0.6, 0.4)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 40
+content_margin_top = 30
+content_margin_right = 40
+content_margin_bottom = 30
 
 [node name="PauseMenu" type="CanvasLayer"]
 layer = 20
@@ -26,7 +31,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0, 0, 0, 0.45)
+color = Color(0.02, 0.03, 0.04, 0.55)
 
 [node name="Center" type="CenterContainer" parent="."]
 anchors_preset = 15
@@ -43,11 +48,12 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_pause")
 
 [node name="VBox" type="VBoxContainer" parent="Center/PausePanel"]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="Center/PausePanel/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.92, 0.93, 0.94, 1)
+theme_override_font_sizes/font_size = 26
 text = "Paused"
 horizontal_alignment = 1
 
