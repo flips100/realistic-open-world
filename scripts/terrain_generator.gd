@@ -2,8 +2,8 @@ extends Node3D
 ## High-res procedural heightmap with PBR multi-texture blend + dense collision.
 
 const TERRAIN_SIZE := 512.0
-const RESOLUTION := 224  # denser mesh for photographic silhouette
-const HEIGHT_SCALE := 44.0
+const RESOLUTION := 112  # v2 denser mesh for photographic silhouette
+const HEIGHT_SCALE := 46.0
 const NOISE_SEED := 42
 const WATER_LEVEL := 3.5
 
@@ -183,7 +183,7 @@ func _color_for(p: Vector3) -> Color:
 	var dz := get_height_at(p.x, p.z + 1.0) - get_height_at(p.x, p.z - 1.0)
 	var slope := sqrt(dx * dx + dz * dz)
 
-	var grass := Color(0.40, 0.60, 0.28)
+	var grass := Color(0.42, 0.62, 0.30)
 	var dirt := Color(0.55, 0.40, 0.24)
 	var rock := Color(0.58, 0.56, 0.54)
 	var snow := Color(0.92, 0.94, 0.97)
