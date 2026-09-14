@@ -22,7 +22,8 @@ All gameplay meshes, materials, shaders, lighting, terrain, vegetation, water, U
 | Atmosphere | GPU particles (pollen, ground haze), volumetric fog -- original |
 | Sky / lighting | `ProceduralSkyMaterial` + Compatibility fallback, DirectionalLight3D (golden hour), filmic/ACES tonemap, optional SSAO/SSIL/SSR -- Godot built-ins (MIT) |
 | Player | Assembled MeshInstance3D humanoid + face albedo from user reference photo -- see likeness note below |
-| Audio | Runtime `AudioStreamGenerator` wind + code-generated WAV footsteps -- original |
+| Shrine / flowers / compass | Procedural meshes + HUD bearing -- original |
+| Audio | Runtime `AudioStreamGenerator` wind + code-generated WAV footsteps / crystal / shrine / flower SFX -- original |
 | Icon | Hand-authored SVG (CC0 / public domain dedication for the icon artwork; project overall remains MIT) |
 
 No external CC0 packs are bundled; none are required to build or ship commercially under MIT.
