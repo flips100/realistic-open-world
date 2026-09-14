@@ -1,13 +1,13 @@
 ; Engine configuration file.
-; Godot 4.x open-world prototype — Realistic Open World (realism upgrade)
+; Godot 4.x open-world prototype -- Realistic Open World (photoreal-leaning v1.2)
 
 config_version=5
 
 [application]
 
 config/name="Realistic Open World"
-config/description="A playable 3D open-world prototype with third-person exploration, high-quality procedural terrain, cinematic lighting, and collectibles. MIT licensed for commercial use."
-config/version="1.1.0"
+config/description="A playable 3D open-world prototype with third-person exploration, photoreal-leaning procedural terrain, photographic lighting, and collectibles. MIT licensed for commercial use."
+config/version="1.2.0"
 run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
@@ -76,6 +76,7 @@ lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
 lights_and_shadows/directional_shadow/16_bits=true
 anti_aliasing/quality/msaa_3d=2
 anti_aliasing/quality/screen_space_aa=1
+anti_aliasing/quality/use_taa=true
 environment/defaults/default_clear_color=Color(0.45, 0.55, 0.65, 1)
 textures/default_filters/anisotropic_filtering_level=4
 lights_and_shadows/positional_shadow/soft_shadow_filter_quality=2
@@ -84,4 +85,3 @@ environment/ssil_quality=2
 environment/glow/upscale_mode=1
 environment/volumetric_fog/volume_size=128
 environment/volumetric_fog/volume_depth=128
-environment/defaults/default_environment=""
