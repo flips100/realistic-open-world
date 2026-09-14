@@ -60,9 +60,9 @@ func _noise_normal(seed_v: int, freq: float, bump: float) -> NoiseTexture2D:
 func _build_water_mat() -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
 	mat.shader = load("res://shaders/water.gdshader") as Shader
-	mat.set_shader_parameter("shallow_color", Color(0.20, 0.50, 0.48))
-	mat.set_shader_parameter("deep_color", Color(0.02, 0.09, 0.16))
-	mat.set_shader_parameter("shore_color", Color(0.06, 0.15, 0.17))
+	mat.set_shader_parameter("shallow_color", Color(0.32, 0.62, 0.58))
+	mat.set_shader_parameter("deep_color", Color(0.06, 0.18, 0.28))
+	mat.set_shader_parameter("shore_color", Color(0.12, 0.28, 0.30))
 	mat.set_shader_parameter("roughness", 0.04)
 	mat.set_shader_parameter("metallic", 0.04)
 	mat.set_shader_parameter("wave_scale", 0.05)
@@ -72,7 +72,7 @@ func _build_water_mat() -> ShaderMaterial:
 	mat.set_shader_parameter("normal_b", _noise_normal(902, 0.055, 3.5))
 	mat.set_shader_parameter("normal_strength", 0.62)
 	mat.set_shader_parameter("fresnel_power", 4.5)
-	mat.set_shader_parameter("opacity", 0.90)
+	mat.set_shader_parameter("opacity", 0.86)
 	mat.set_shader_parameter("refraction_strength", 0.04)
-	mat.set_shader_parameter("specular_boost", 1.2)
+	mat.set_shader_parameter("specular_boost", 1.35)
 	return mat

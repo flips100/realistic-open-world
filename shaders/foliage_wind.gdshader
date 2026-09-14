@@ -3,7 +3,7 @@ render_mode cull_disabled, diffuse_burley, specular_schlick_ggx, depth_draw_opaq
 
 /* Translucent-ish leaves with layered wind (gust + flutter), not rubber sway. */
 
-uniform vec4 albedo_color : source_color = vec4(0.16, 0.40, 0.14, 1.0);
+uniform vec4 albedo_color : source_color = vec4(0.28, 0.50, 0.20, 1.0);
 uniform sampler2D albedo_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform float roughness : hint_range(0.0, 1.0) = 0.78;
 uniform float wind_strength : hint_range(0.0, 2.0) = 0.28;
@@ -45,5 +45,5 @@ void fragment() {
 	SPECULAR = 0.25;
 	// Cheap translucency / SSS stand-in: emission lifts when facing light-ish via NORMAL
 	float leaf_thin = mix(translucency, translucency * 0.4, v_facing);
-	EMISSION = albedo_color.rgb * (ao_lift + leaf_thin * 0.08);
+	EMISSION = albedo_color.rgb * (ao_lift + leaf_thin * 0.14 + 0.02);
 }
