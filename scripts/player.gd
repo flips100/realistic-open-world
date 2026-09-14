@@ -2,6 +2,7 @@ extends CharacterBody3D
 ## Prefect-blazer humanoid from assets/player/reference_person.jpg (likeness: user's responsibility).
 
 const PlayerAppearance := preload("res://scripts/player_appearance.gd")
+const PlayerFaceLoader := preload("res://scripts/player_face_loader.gd")
 
 const WALK_SPEED := 6.0
 const SPRINT_SPEED := 11.0
@@ -66,37 +67,7 @@ func _ready() -> void:
 
 
 func _load_face_texture() -> Texture2D:
-	if ResourceLoader.exists(REF_FACE_PATH):
-		var res := load(REF_FACE_PATH)
-		if res is Texture2D:
-			return res as Texture2D
-		if res is Image:
-			return ImageTexture.create_from_image(res as Image)
-	if FileAccess.file_exists(REF_FACE_PATH):
-		var img := Image.new()
-		if img.load(REF_FACE_PATH) == OK:
-			return ImageTexture.create_from_image(img)
-	var b64 := ""
-	var b64_path := "res://assets/player/reference_person.jpg.b64"
-	if FileAccess.file_exists(b64_path):
-		var f := FileAccess.open(b64_path, FileAccess.READ)
-		if f:
-			b64 = f.get_as_text().strip_edges()
-			f.close()
-	elif FileAccess.file_exists("res://assets/player/reference_person.jpg.b64.part1"):
-		var f1 := FileAccess.open("res://assets/player/reference_person.jpg.b64.part1", FileAccess.READ)
-		var f2 := FileAccess.open("res://assets/player/reference_person.jpg.b64.part2", FileAccess.READ)
-		if f1 and f2:
-			b64 = f1.get_as_text().strip_edges() + f2.get_as_text().strip_edges()
-			f1.close()
-			f2.close()
-	if b64 != "":
-		var raw := Marshalls.base64_to_raw(b64)
-		var img2 := Image.new()
-		if img2.load_jpg_from_buffer(raw) == OK:
-			return ImageTexture.create_from_image(img2)
-	push_warning("Player: reference face texture missing at %s" % REF_FACE_PATH)
-	return null
+	return PlayerFaceLoader.load_face()
 
 
 func _build_camera() -> void:
