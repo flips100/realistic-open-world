@@ -104,7 +104,7 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.82, 0.88, 0.82, 1)
 theme_override_font_sizes/font_size = 15
-text = "v1.3 indie valley — brighter daylight, humanoid explorer, denser woods. Collect 8 crystals."
+text = "v2.0 full indie upgrade — cinematic daylight, prefect explorer, stamina, compass, shrine & flowers. Collect 8 crystals."
 horizontal_alignment = 1
 autowrap_mode = 2
 
