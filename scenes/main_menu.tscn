@@ -81,12 +81,12 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.78, 0.82, 0.75, 1)
 theme_override_font_sizes/font_size = 15
-text = "A cinematic procedural valley. Collect 8 crystals to restore the land."
+text = "Photoreal-leaning procedural valley (v1.2). Collect 8 crystals to restore the land."
 horizontal_alignment = 1
 autowrap_mode = 2
 
 [node name="Spacer" type="Control" parent="Center/Panel/VBox"]
-custom_minimum_size = Vector2(0, 12)
+custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 
 [node name="StartButton" type="Button" parent="Center/Panel/VBox"]
@@ -106,5 +106,6 @@ text = "Quit"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.58, 0.6, 1)
 theme_override_font_sizes/font_size = 11
-text = "WASD · Mouse · Shift sprint · Space jump · Esc pause\nForward+ recommended · MIT License"
+text = "WASD | Mouse | Shift sprint | Space jump | Esc pause
+Forward+ recommended | MIT License"
 horizontal_alignment = 1
