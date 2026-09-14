@@ -1,5 +1,5 @@
 extends Area3D
-## Subtle crystal collectible with soft glow + sparkle particles (fits realistic world).
+## Crystal collectible with soft glow, sparkle particles, and procedural pickup SFX.
 
 signal collected
 
@@ -16,6 +16,7 @@ func _ready() -> void:
 	collision_mask = 2
 	monitoring = true
 	monitorable = true
+	add_to_group("crystal")
 
 	var shape := CollisionShape3D.new()
 	var sphere := SphereShape3D.new()
@@ -32,35 +33,49 @@ func _ready() -> void:
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.emission_enabled = true
 	mat.emission = Color(0.35, 0.75, 0.95)
-	mat.emission_energy_multiplier = 1.4
+	mat.emission_energy_multiplier = 1.55
 	mat.roughness = 0.12
 	mat.metallic = 0.55
-	mat.specular = 0.7
 	_mesh.material_override = mat
 	add_child(_mesh)
 
+	var core := MeshInstance3D.new()
+	var core_m := SphereMesh.new()
+	core_m.radius = 0.12
+	core_m.height = 0.24
+	core.mesh = core_m
+	var cmat := StandardMaterial3D.new()
+	cmat.albedo_color = Color(0.85, 0.98, 1.0)
+	cmat.emission_enabled = true
+	cmat.emission = Color(0.6, 0.9, 1.0)
+	cmat.emission_energy_multiplier = 2.2
+	cmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	core.material_override = cmat
+	core.position.y = 0.15
+	_mesh.add_child(core)
+
 	_light = OmniLight3D.new()
 	_light.light_color = Color(0.5, 0.85, 1.0)
-	_light.light_energy = 1.1
-	_light.omni_range = 7.0
+	_light.light_energy = 1.25
+	_light.omni_range = 8.0
 	_light.omni_attenuation = 1.2
 	_light.shadow_enabled = false
 	add_child(_light)
 
 	_particles = GPUParticles3D.new()
-	_particles.amount = 12
+	_particles.amount = 16
 	_particles.lifetime = 2.5
 	_particles.emitting = true
 	var pm := ParticleProcessMaterial.new()
 	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
-	pm.emission_sphere_radius = 0.4
+	pm.emission_sphere_radius = 0.45
 	pm.direction = Vector3(0, 1, 0)
 	pm.spread = 40.0
 	pm.initial_velocity_min = 0.1
-	pm.initial_velocity_max = 0.35
+	pm.initial_velocity_max = 0.4
 	pm.gravity = Vector3(0, 0.15, 0)
 	pm.scale_min = 0.02
-	pm.scale_max = 0.05
+	pm.scale_max = 0.055
 	pm.color = Color(0.7, 0.95, 1.0, 0.7)
 	_particles.process_material = pm
 	var dm := SphereMesh.new()
@@ -74,7 +89,7 @@ func _ready() -> void:
 	dmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	dmat.emission_enabled = true
 	dmat.emission = Color(0.5, 0.85, 1.0)
-	dmat.emission_energy_multiplier = 0.8
+	dmat.emission_energy_multiplier = 0.9
 	dm.material = dmat
 	_particles.draw_pass_1 = dm
 	add_child(_particles)
@@ -88,9 +103,9 @@ func _process(delta: float) -> void:
 	if _picked:
 		return
 	_time += delta
-	_mesh.rotation.y += delta * 0.9
+	_mesh.rotation.y += delta * 0.95
 	_mesh.position.y = sin(_time * 1.6) * 0.18
-	_light.light_energy = 0.95 + sin(_time * 2.2) * 0.25
+	_light.light_energy = 1.05 + sin(_time * 2.2) * 0.3
 
 
 func _on_body_entered(body: Node3D) -> void:
@@ -105,8 +120,44 @@ func _on_body_entered(body: Node3D) -> void:
 
 func _play_pickup() -> void:
 	_particles.emitting = false
+	var sp := AudioStreamPlayer3D.new()
+	sp.stream = _make_pickup_sfx()
+	sp.volume_db = -4.0
+	sp.max_distance = 48.0
+	sp.pitch_scale = randf_range(0.95, 1.08)
+	get_parent().add_child(sp)
+	sp.global_position = global_position
+	sp.play()
+	sp.finished.connect(sp.queue_free)
 	var tween := create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(_mesh, "scale", Vector3.ZERO, 0.35).set_ease(Tween.EASE_IN)
 	tween.tween_property(_light, "light_energy", 0.0, 0.35)
 	tween.chain().tween_callback(queue_free)
+
+
+func _make_pickup_sfx() -> AudioStreamWAV:
+	var sample_rate := 22050
+	var duration := 0.28
+	var n := int(sample_rate * duration)
+	var data := PackedByteArray()
+	data.resize(n * 2)
+	for i in range(n):
+		var t := float(i) / float(sample_rate)
+		var env := exp(-t * 6.5)
+		var s := (
+			sin(TAU * 740.0 * t) * 0.4
+			+ sin(TAU * 988.0 * t) * 0.28
+			+ sin(TAU * 1175.0 * t) * 0.18
+			+ sin(TAU * (740.0 + t * 900.0) * t) * 0.12
+		) * env
+		s = clampf(s, -1.0, 1.0)
+		var v := int(s * 32767.0)
+		data[i * 2] = v & 0xFF
+		data[i * 2 + 1] = (v >> 8) & 0xFF
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = sample_rate
+	stream.stereo = false
+	stream.data = data
+	return stream
