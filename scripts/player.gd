@@ -1,28 +1,32 @@
 extends CharacterBody3D
-## Third-person controller: filmic FOV, grounded locomotion, camera smoothing, footsteps.
+## Prefect-blazer humanoid from assets/player/reference_person.jpg (likeness: user's responsibility).
 
-const WALK_SPEED := 5.8
-const SPRINT_SPEED := 10.5
-const JUMP_VELOCITY := 8.2
-const MOUSE_SENSITIVITY := 0.0024
-const ACCELERATION := 12.0
-const AIR_ACCELERATION := 3.5
-const DECELERATION := 15.0
-const CAMERA_MIN_PITCH := -1.15
-const CAMERA_MAX_PITCH := 0.5
-const CAMERA_DISTANCE := 5.0
-const CAMERA_HEIGHT := 1.6
-const BASE_FOV := 62.0   # slightly filmic / photographic vs game-wide 75+
-const SPRINT_FOV := 70.0
-const FOV_LERP := 5.0
-const CAMERA_SMOOTH := 12.0
+const PlayerAppearance := preload("res://scripts/player_appearance.gd")
+
+const WALK_SPEED := 6.0
+const SPRINT_SPEED := 11.0
+const JUMP_VELOCITY := 8.4
+const MOUSE_SENSITIVITY := 0.0025
+const ACCELERATION := 14.0
+const AIR_ACCELERATION := 3.8
+const DECELERATION := 16.0
+const CAMERA_MIN_PITCH := -1.2
+const CAMERA_MAX_PITCH := 0.55
+const CAMERA_DISTANCE := 4.4
+const CAMERA_HEIGHT := 1.58
+const CAMERA_SHOULDER := 0.55
+const BASE_FOV := 58.0
+const SPRINT_FOV := 66.0
+const FOV_LERP := 5.5
+const CAMERA_SMOOTH := 14.0
 const LANDING_THRESHOLD := -4.0
+const REF_FACE_PATH := "res://assets/player/reference_person.jpg"
 
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _yaw: float = 0.0
-var _pitch: float = -0.2
+var _pitch: float = -0.16
 var _target_yaw: float = 0.0
-var _target_pitch: float = -0.2
+var _target_pitch: float = -0.16
 var _camera_pivot: Node3D
 var _spring_arm: SpringArm3D
 var _camera: Camera3D
@@ -36,10 +40,21 @@ var _footstep_player: AudioStreamPlayer3D
 var _terrain: Node = null
 var _bob_time: float = 0.0
 var _strafe_roll: float = 0.0
+var _left_arm: Node3D
+var _right_arm: Node3D
+var _left_leg: Node3D
+var _right_leg: Node3D
+var _anim_phase: float = 0.0
 
 
 func _ready() -> void:
-	_build_visuals()
+	var face := _load_face_texture()
+	var parts: Dictionary = PlayerAppearance.build_body(self, face)
+	_visual = parts["visual"]
+	_left_arm = parts["left_arm"]
+	_right_arm = parts["right_arm"]
+	_left_leg = parts["left_leg"]
+	_right_leg = parts["right_leg"]
 	_build_camera()
 	_build_audio()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -50,53 +65,38 @@ func _ready() -> void:
 		_terrain = get_parent().get_node_or_null("Terrain")
 
 
-func _build_visuals() -> void:
-	_visual = Node3D.new()
-	_visual.name = "Visual"
-	add_child(_visual)
-
-	var body := MeshInstance3D.new()
-	var capsule := CapsuleMesh.new()
-	capsule.radius = 0.35
-	capsule.height = 1.6
-	body.mesh = capsule
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.26, 0.34, 0.42)
-	mat.roughness = 0.82
-	mat.metallic = 0.06
-	body.material_override = mat
-	body.position.y = 0.9
-	_visual.add_child(body)
-
-	var head := MeshInstance3D.new()
-	var sphere := SphereMesh.new()
-	sphere.radius = 0.22
-	sphere.height = 0.44
-	head.mesh = sphere
-	var hmat := StandardMaterial3D.new()
-	hmat.albedo_color = Color(0.80, 0.66, 0.52)
-	hmat.roughness = 0.72
-	head.material_override = hmat
-	head.position = Vector3(0, 1.55, 0)
-	_visual.add_child(head)
-
-	var nose := MeshInstance3D.new()
-	var nose_mesh := BoxMesh.new()
-	nose_mesh.size = Vector3(0.1, 0.07, 0.22)
-	nose.mesh = nose_mesh
-	var nmat := StandardMaterial3D.new()
-	nmat.albedo_color = Color(0.2, 0.28, 0.36)
-	nose.material_override = nmat
-	nose.position = Vector3(0, 1.5, -0.28)
-	_visual.add_child(nose)
-
-	var collision := CollisionShape3D.new()
-	var shape := CapsuleShape3D.new()
-	shape.radius = 0.35
-	shape.height = 1.6
-	collision.shape = shape
-	collision.position.y = 0.9
-	add_child(collision)
+func _load_face_texture() -> Texture2D:
+	if ResourceLoader.exists(REF_FACE_PATH):
+		var res := load(REF_FACE_PATH)
+		if res is Texture2D:
+			return res as Texture2D
+		if res is Image:
+			return ImageTexture.create_from_image(res as Image)
+	if FileAccess.file_exists(REF_FACE_PATH):
+		var img := Image.new()
+		if img.load(REF_FACE_PATH) == OK:
+			return ImageTexture.create_from_image(img)
+	var b64 := ""
+	var b64_path := "res://assets/player/reference_person.jpg.b64"
+	if FileAccess.file_exists(b64_path):
+		var f := FileAccess.open(b64_path, FileAccess.READ)
+		if f:
+			b64 = f.get_as_text().strip_edges()
+			f.close()
+	elif FileAccess.file_exists("res://assets/player/reference_person.jpg.b64.part1"):
+		var f1 := FileAccess.open("res://assets/player/reference_person.jpg.b64.part1", FileAccess.READ)
+		var f2 := FileAccess.open("res://assets/player/reference_person.jpg.b64.part2", FileAccess.READ)
+		if f1 and f2:
+			b64 = f1.get_as_text().strip_edges() + f2.get_as_text().strip_edges()
+			f1.close()
+			f2.close()
+	if b64 != "":
+		var raw := Marshalls.base64_to_raw(b64)
+		var img2 := Image.new()
+		if img2.load_jpg_from_buffer(raw) == OK:
+			return ImageTexture.create_from_image(img2)
+	push_warning("Player: reference face texture missing at %s" % REF_FACE_PATH)
+	return null
 
 
 func _build_camera() -> void:
@@ -104,17 +104,16 @@ func _build_camera() -> void:
 	_camera_pivot.name = "CameraPivot"
 	_camera_pivot.position = Vector3(0, CAMERA_HEIGHT, 0)
 	add_child(_camera_pivot)
-
 	_spring_arm = SpringArm3D.new()
 	_spring_arm.spring_length = CAMERA_DISTANCE
-	_spring_arm.margin = 0.22
+	_spring_arm.margin = 0.2
 	_spring_arm.collision_mask = 1
+	_spring_arm.position = Vector3(CAMERA_SHOULDER, 0.2, 0)
 	_camera_pivot.add_child(_spring_arm)
-
 	_camera = Camera3D.new()
 	_camera.fov = BASE_FOV
 	_camera.current = true
-	_camera.near = 0.07
+	_camera.near = 0.08
 	_camera.far = 520.0
 	_camera.keep_aspect = Camera3D.KEEP_HEIGHT
 	_spring_arm.add_child(_camera)
@@ -178,36 +177,25 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if not _can_control or GameManager.is_paused:
 		return
-
 	_yaw = lerp_angle(_yaw, _target_yaw, 1.0 - exp(-CAMERA_SMOOTH * delta))
 	_pitch = lerpf(_pitch, _target_pitch, 1.0 - exp(-CAMERA_SMOOTH * delta))
-
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	var want_roll := -input_dir.x * 0.025
-	_strafe_roll = lerpf(_strafe_roll, want_roll, 1.0 - exp(-6.0 * delta))
-
-	var cam_rot := Vector3(_pitch + _landing_punch, _yaw, _strafe_roll)
-	_camera_pivot.rotation = cam_rot
+	_strafe_roll = lerpf(_strafe_roll, -input_dir.x * 0.03, 1.0 - exp(-7.0 * delta))
+	_camera_pivot.rotation = Vector3(_pitch + _landing_punch, _yaw, _strafe_roll)
 	_landing_punch = lerpf(_landing_punch, 0.0, 1.0 - exp(-9.0 * delta))
-
 	var on_floor_now := is_on_floor()
 	if not on_floor_now:
 		velocity.y -= gravity * delta
-
 	if on_floor_now and not _was_on_floor and velocity.y < LANDING_THRESHOLD:
 		_landing_punch = clampf(velocity.y * 0.018, -0.1, 0.0)
 	_was_on_floor = on_floor_now
-
 	if Input.is_action_just_pressed("jump") and on_floor_now:
 		velocity.y = JUMP_VELOCITY
-
 	var cam_basis := Basis.from_euler(Vector3(0, _yaw, 0))
 	var direction := (cam_basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
-
 	var sprinting := Input.is_action_pressed("sprint") and direction.length() > 0.1
 	var target_speed := SPRINT_SPEED if sprinting else WALK_SPEED
 	var accel := ACCELERATION if on_floor_now else AIR_ACCELERATION
-
 	if direction.length() > 0.01:
 		velocity.x = move_toward(velocity.x, direction.x * target_speed, accel * delta * target_speed)
 		velocity.z = move_toward(velocity.z, direction.z * target_speed, accel * delta * target_speed)
@@ -216,37 +204,49 @@ func _physics_process(delta: float) -> void:
 		var decel := DECELERATION if on_floor_now else AIR_ACCELERATION * 0.5
 		velocity.x = move_toward(velocity.x, 0, decel * delta * WALK_SPEED)
 		velocity.z = move_toward(velocity.z, 0, decel * delta * WALK_SPEED)
-
-	_visual.rotation.y = lerp_angle(_visual.rotation.y, _mesh_yaw, 10.0 * delta)
-
+	_visual.rotation.y = lerp_angle(_visual.rotation.y, _mesh_yaw, 12.0 * delta)
 	var horiz_speed := Vector2(velocity.x, velocity.z).length()
+	_update_locomotion_anim(delta, horiz_speed, on_floor_now, sprinting)
 	if on_floor_now and horiz_speed > 0.5:
-		_bob_time += delta * (horiz_speed * 0.32)
-		_spring_arm.position.y = sin(_bob_time) * 0.035
-		_spring_arm.position.x = cos(_bob_time * 0.5) * 0.012
+		_bob_time += delta * (horiz_speed * 0.34)
+		_spring_arm.position.y = 0.2 + sin(_bob_time) * 0.04
+		_spring_arm.position.x = CAMERA_SHOULDER + cos(_bob_time * 0.5) * 0.015
 	else:
-		_spring_arm.position.y = lerpf(_spring_arm.position.y, 0.0, 7.0 * delta)
-		_spring_arm.position.x = lerpf(_spring_arm.position.x, 0.0, 7.0 * delta)
-
-	var want_fov := SPRINT_FOV if sprinting else BASE_FOV
-	_camera.fov = lerpf(_camera.fov, want_fov, 1.0 - exp(-FOV_LERP * delta))
-
+		_spring_arm.position.y = lerpf(_spring_arm.position.y, 0.2, 8.0 * delta)
+		_spring_arm.position.x = lerpf(_spring_arm.position.x, CAMERA_SHOULDER, 8.0 * delta)
+	_camera.fov = lerpf(_camera.fov, SPRINT_FOV if sprinting else BASE_FOV, 1.0 - exp(-FOV_LERP * delta))
 	move_and_slide()
-
 	if on_floor_now and horiz_speed > 1.2:
 		_footstep_timer -= delta
-		var interval := 0.4 if sprinting else 0.55
+		var interval := 0.38 if sprinting else 0.52
 		if _footstep_timer <= 0.0:
 			_footstep_timer = interval
 			_play_footstep()
 	else:
 		_footstep_timer = 0.1
-
 	var limit := 220.0
 	var pos := global_position
 	if absf(pos.x) > limit or absf(pos.z) > limit:
 		global_position.x = clampf(pos.x, -limit, limit)
 		global_position.z = clampf(pos.z, -limit, limit)
+
+
+func _update_locomotion_anim(delta: float, speed: float, on_floor: bool, sprinting: bool) -> void:
+	if not on_floor or speed < 0.4:
+		_anim_phase = lerpf(_anim_phase, 0.0, 8.0 * delta)
+		if _left_arm:
+			_left_arm.rotation.x = lerpf(_left_arm.rotation.x, 0.05, 10.0 * delta)
+			_right_arm.rotation.x = lerpf(_right_arm.rotation.x, -0.05, 10.0 * delta)
+			_left_leg.rotation.x = lerpf(_left_leg.rotation.x, 0.0, 10.0 * delta)
+			_right_leg.rotation.x = lerpf(_right_leg.rotation.x, 0.0, 10.0 * delta)
+		return
+	var rate := 7.5 if sprinting else 5.5
+	_anim_phase += delta * rate * clampf(speed / WALK_SPEED, 0.5, 1.6)
+	var swing := sin(_anim_phase) * (0.55 if sprinting else 0.4)
+	_left_arm.rotation.x = swing
+	_right_arm.rotation.x = -swing
+	_left_leg.rotation.x = -swing * 0.9
+	_right_leg.rotation.x = swing * 0.9
 
 
 func _play_footstep() -> void:
