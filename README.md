@@ -1,29 +1,31 @@
 # Realistic Open World
 
-A playable **Godot 4.x** 3D open-world prototype aimed at a proper **indie game feel** — readable daylight, a humanoid explorer, denser woods, and a clear lake — still fully **procedural / MIT / commercial-friendly**.
+A playable **Godot 4.x** 3D open-world prototype — a cohesive **v2.0 full indie upgrade** with cinematic daylight, a prefect humanoid explorer, denser valley, stamina, compass, shrine checkpoint, and side pickups. Still fully **procedural / MIT / commercial-friendly**.
 
-**Version 1.3.0** | **License: MIT** (see [LICENSE](LICENSE)).
+**Version 2.0.0** | **License: MIT** (see [LICENSE](LICENSE)).
 
 > **Honest framing:** polished procedural indie look, **not** scanned AAA photogrammetry. Built with shaders, `NoiseTexture2D`, and generated meshes — no proprietary asset packs.
 
-## What's new in v1.3
+## What's new in v2.0
 
-| Area | What got better |
-|------|-----------------|
-| **Lighting that always reads** | Switched to reliable **ProceduralSky** (no pure-black sky in normal play). Higher ambient/sky contribution. Fixed exposure (no auto-exposure crush). **Compatibility/OpenGL fallback** path: brighter sun/fill/bounce, disables volumetric fog / SSR / SSIL / SSAO that soft-fail on OpenGL. |
-| **Player** | Replaced grey capsule with a **person** matching a user reference photo: dark skin tone, short textured hair + beard, blue **PREFECT** blazer, light-blue shirt, polka-dot tie, dark trousers. Face uses `assets/player/reference_person.jpg`. Over-shoulder camera. |
-| **World read** | Brighter grass/dirt/rock tints; denser deciduous (5-blob crowns) + pines; clearer lake colors for daylight/golden hour; visible blue→warm horizon. |
-| **HUD / menu** | Crystal badge panel, clearer objective text, main menu with **live 3D valley preview** (not flat grey). |
-| **Feel** | Slightly snappier move/camera; same WASD / mouse / Shift / Space / Esc and **8** crystals. |
+| Pillar | What got better |
+|--------|-----------------|
+| **Rendering & lighting** | Brighter cinematic ProceduralSky, tuned ambient/fill/bounce, SSAO/SSR/SSIL/glow/fog refined. Fixed exposure (no auto-exposure crush on llvmpipe). Compatibility/OpenGL still gets a brighter fallback path. |
+| **Player** | Prefect humanoid (blue blazer + face from `assets/player`) with better proportions, idle breathe/sway, stronger walk/sprint cycle, torso lean, over-shoulder camera polish. |
+| **World** | Denser terrain mesh (112²), more trees/pines/rocks/bushes/grass, lakeside shrine, watchtower ruin landmark, soft world bounds with push-back. |
+| **Gameplay** | Stamina sprint drain + regen, crystal compass (direction + distance), **E** interact shrine checkpoint (restores stamina), 5 optional valley flowers, dynamic quest text, polished win state. Core: **8** crystals. |
+| **Audio / UI** | Richer procedural wind, crystal pickup chime, shrine chime, flower SFX, footsteps. HUD with stamina bar, compass, flowers, quest line. Main menu / pause framed as v2.0. |
+| **Stability** | All scripts present; main scene `main_menu.tscn` → world F5; README perf knobs + export notes. |
 
 ## Features
 
-- Third-person controller (**WASD**, mouse look, **Shift** sprint, **Space** jump, **Esc** pause)
-- Large noise terrain with shader multi-surface blending
-- Soft world bounds (mountain ridges + fog)
-- MultiMesh trees (2 types), rocks, bushes, grass tufts with distance fade
-- Game loop: collect **8** crystals
-- Main menu → world (F5), pause, win → menu
+- Third-person controller (**WASD**, mouse look, **Shift** sprint + stamina, **Space** jump, **E** interact, **Esc** pause)
+- Large noise terrain with shader multi-surface blending (grass / dirt / rock / cliff / snow + wetness)
+- Soft world bounds (mountain ridges + fog + soft push)
+- MultiMesh trees (deciduous + pines), rocks, bushes, grass tufts
+- Game loop: collect **8** crystals; optional **5** flowers; shrine checkpoint
+- Compass to nearest crystal; quest text updates as you progress
+- Main menu live 3D valley preview → world (F5), pause, win → menu
 - All art generated in code — commercial-safe
 
 ## Requirements
@@ -41,7 +43,7 @@ A playable **Godot 4.x** 3D open-world prototype aimed at a proper **indie game 
 3. **Import** → `project.godot` → **Open**.
 4. Prefer **Project → Project Settings → Rendering → Rendering Method = Forward+** when your GPU supports it.
 5. Press **F5**. Click **Enter the Valley**.
-6. Collect **8** crystals; standing stones mark the spawn landmark.
+6. Collect **8** crystals (compass points to the nearest). Visit the **lakeside shrine** (**E**) for a checkpoint + stamina restore. Optional: pick **5** valley flowers. Standing stones mark spawn; a ruin arch sits on a far ridge.
 
 ## Controls
 
@@ -49,8 +51,9 @@ A playable **Godot 4.x** 3D open-world prototype aimed at a proper **indie game 
 |--------|--------|
 | Move | **W A S D** |
 | Look | **Mouse** |
-| Sprint | **Shift** |
+| Sprint (drains stamina) | **Shift** |
 | Jump | **Space** |
+| Interact (shrine) | **E** |
 | Pause | **Esc** |
 
 ## Performance knobs (mid GPU)
@@ -68,35 +71,29 @@ Defaults target a mid-range GPU. To dial down:
    - Disable TAA if needed (`anti_aliasing/quality/use_taa`)
    - `environment/volumetric_fog/volume_size`: `128` → `64`
 3. **Vegetation density** in `scripts/vegetation_spawner.gd`: reduce `GRASS_TUFT_COUNT`, `TREE_COUNT`, etc.
+4. **Terrain resolution** in `scripts/terrain_generator.gd`: `RESOLUTION` `112` → `80` for weaker CPUs.
 
 ## Compatibility / OpenGL note
 
-If you force **gl_compatibility**, Forward+-only effects are skipped and ambient/sun/fill are boosted so the valley stays visible. You will still get a playable daylight scene with ProceduralSky — just without volumetric fog, SSR, SSIL, or SSAO. Prefer **Forward+** when possible.
+If you force **gl_compatibility**, Forward+-only effects are skipped and ambient/sun/fill/bounce are boosted so the valley stays visible. You will still get a playable daylight scene with ProceduralSky — just without volumetric fog, SSR, SSIL, or SSAO. Prefer **Forward+** when possible.
+
+## Export
+
+Use **Project → Export** with the included `export_presets.cfg` as a starting point (or create a desktop preset). Export templates for Godot 4.3+ required. Keep `assets/player/*.b64*` if you strip `.import` caches — the face loader reconstructs from base64 when needed.
 
 ## Project structure
 
 ```
 project.godot
-shaders/
-  terrain_blend.gdshader   # PBR height/slope/wetness blend
-  foliage_wind.gdshader    # Leaves + wind
-  bark.gdshader
-  water.gdshader
-scenes/
-  main_menu.tscn           # 3D preview backdrop
-  world.tscn
-  ui/hud.tscn
-  ui/pause_menu.tscn
-scripts/
-  terrain_generator.gd / vegetation_spawner.gd
-  world.gd / player.gd / water_plane.gd / atmosphere_fx.gd
-  ...
+shaders/     terrain_blend, foliage_wind, bark, water
+scenes/      main_menu, world, ui/hud, ui/pause_menu
+scripts/     terrain, vegetation, world, player, shrine, side_pickup, ...
+assets/player/  reference face (+ .b64 fallbacks)
 ```
 
 ## Commercial use
 
 **MIT License**. Keep the copyright notice. Godot Engine is also MIT — see [CREDITS.md](CREDITS.md).
-
 
 ## Player likeness
 
@@ -108,13 +105,14 @@ The third-person player appearance is based on a **user-supplied reference photo
 
 - Procedural noise materials ≠ scanned PBR photogrammetry
 - Primitive mesh foliage (layered crowns, not leaf cards / Nanite trees)
-- Player is assembled primitives + reference face card (no skeletal animation / IK); likeness rights are the user's responsibility
+- Player is assembled primitives + reference face card (procedural walk/idle, no skeletal IK); likeness rights are the user's responsibility
 - Single terrain chunk (no streaming / virtual texturing)
 - Water is a shader plane (no FFT ocean, caustics, or shore foam cards)
 - Fixed golden-hour lighting (no full day/night / weather system)
 - No GI probes / SDFGI for the whole valley (sky + optional SSIL)
-- Grass tufts are capsules, not photo grass atlases
+- Compass is a simple HUD bearing (not a full minimap)
+- Shrine checkpoint stores position for quest/state (no full save-game system yet)
 
 ## Contributing
 
-PRs welcome: Terrain3D, day cycle, better leaf cards, skeletal player, animals, quests, or a "Low" graphics preset scene.
+PRs welcome: Terrain3D, day cycle, better leaf cards, skeletal player, animals, fuller quests, minimap, or a "Low" graphics preset scene.
