@@ -1,32 +1,49 @@
 # Realistic Open World
 
-A playable **Godot 4.x** 3D open-world prototype: third-person exploration across a large procedural valley, with trees, rocks, fog, shadows, collectible crystals, HUD, and pause menu.
+A playable **Godot 4.x** 3D open-world prototype with a **realism-focused upgrade**: cinematic golden-hour lighting, multi-texture terrain blending, wind-shaded vegetation, water, volumetric haze, and tighter player feel — still fully procedural / MIT / commercial-friendly.
 
 **License: MIT** — free to use, modify, and sell commercially (see [LICENSE](LICENSE)).
+
+> Not photoreal AAA. Aimed at the strongest look/feel achievable with code-generated assets and Godot 4 Forward+ features.
+
+## Realism upgrade (v1.1)
+
+| Area | What changed |
+|------|----------------|
+| **Rendering** | Forward+ preferred; ACES tonemap; SSAO + SSR; glow; soft 8K directional shadows; volumetric fog; warm golden-hour sun + sky fill |
+| **Terrain** | 192² mesh (~512×512 units); custom blend shader (grass/dirt/rock/cliff/snow by height & slope); NoiseTexture2D albedo + normals; denser trimesh collision |
+| **Vegetation** | Deciduous + pine trees, denser rocks/bushes; bark & foliage shaders; light wind sway; visibility-range culling |
+| **Atmosphere** | Horizon haze matching sky; volumetric fog; water plane with animated normals / fresnel; pollen motes |
+| **Player** | Camera smoothing; sprint FOV kick; landing punch; head bob; procedural footsteps by surface (grass/dirt/rock) |
+| **Audio** | Procedural looping wind ambience + footstep one-shots (no third-party audio files) |
+| **Polish** | Quieter HUD, subtler crystal glow + sparkles, refined menus |
 
 ## Features
 
 - Third-person controller (WASD, mouse look, sprint, jump, gravity, spring-arm camera)
-- Large noise-based terrain (~512×512 units) with grass / dirt / rock vertex coloring
+- Large noise-based terrain with shader-based multi-surface blending
 - Soft world bounds via mountain ridges and depth fog
-- MultiMesh trees, rocks, and bushes
-- Procedural sky, directional sun with shadows, ambient sky light, SSAO, glow
-- Game loop: collect **8 glowing crystals** scattered across the valley
+- MultiMesh trees (2 types), rocks, and bushes with LODish distance fade
+- Game loop: collect **8** crystals scattered across the valley
 - Main menu → world, pause menu (Esc), win state → return to menu
-- All art generated in code (meshes, materials, NoiseTexture2D) — commercial-safe
+- All art generated in code (meshes, materials, shaders, NoiseTexture2D) — commercial-safe
 
 ## Requirements
 
-- [Godot 4.3+](https://godotengine.org/download/) (4.2+ should work; project features list `4.3`)
-- Desktop platform (Windows, macOS, or Linux)
+- [Godot 4.3+](https://godotengine.org/download/) (project features list `4.3`)
+- **Desktop** (Windows, macOS, or Linux)
+- **Forward+** renderer (default) for SSAO / SSR / volumetric fog quality  
+  - Mobile/Compatibility will run but with reduced fidelity; disable volumetric fog if needed on low-end GPUs
+- Recommended: GPU with 4GB+ VRAM for 8K shadows + volumetric fog at 1080p
 
 ## How to open and play
 
 1. Install Godot 4.3 or newer.
 2. Clone or download this repository.
-3. In Godot: **Import** → select `project.godot` in this folder → **Open**.
-4. Press **F5** (or Play) to run. The main menu is the startup scene.
-5. Click **Start Adventure**.
+3. In Godot: **Import** → select `project.godot` → **Open**.
+4. Confirm **Project → Project Settings → Rendering → Renderer** is **Forward+** (or open as-is; `project.godot` sets `forward_plus`).
+5. Press **F5** (or Play). Main menu is the startup scene.
+6. Click **Enter the Valley**.
 
 No external asset packs are required.
 
@@ -42,56 +59,50 @@ No external asset packs are required.
 
 ## Goal
 
-Explore the open valley and collect **8 glowing cyan crystals**. Standing stones near the spawn mark a landmark. When all crystals are found, a completion panel appears.
+Explore the open valley and collect **8** crystals. Standing stones near the spawn mark a landmark. When all are found, a completion panel appears.
 
-## Exporting downloadable desktop builds
+## Exporting desktop builds
 
-1. In Godot: **Project → Export…**
-2. Install export templates if prompted (**Editor → Manage Export Templates**).
-3. Add a preset:
-   - **Windows Desktop** → `.exe`
-   - **Linux/X11** → binary
-   - **macOS** → `.app` / `.zip`
-4. Choose an output path (e.g. `builds/RealisticOpenWorld`) and click **Export Project**.
-5. Distribute the exported binary together with the `.pck` (or one-file export if enabled).
-
-Recommended export tips:
-
-- Enable **Embed PCK** for a single distributable file where supported.
-- Use **Release** export mode for players.
-- Test the exported build on a clean machine.
+1. **Project → Export…**
+2. Install export templates if prompted.
+3. Add **Windows / Linux / macOS** preset → Export Project.
+4. Prefer **Release** mode; embed PCK where supported.
 
 ## Project structure
 
 ```
-project.godot          # Engine config, input map, main scene
+project.godot
+shaders/
+  terrain_blend.gdshader   # Height/slope multi-texture terrain
+  foliage_wind.gdshader    # Leaf/bush wind
+  bark.gdshader
+  water.gdshader
 scenes/
-  main_menu.tscn       # Title screen
-  world.tscn           # Open outdoor world
-  ui/hud.tscn          # Crystal counter + win UI
-  ui/pause_menu.tscn   # Pause overlay
+  main_menu.tscn
+  world.tscn
+  ui/hud.tscn
+  ui/pause_menu.tscn
 scripts/
-  game_manager.gd      # Autoload: score, win, scene changes
-  player.gd            # Third-person controller
-  terrain_generator.gd # Procedural heightmap mesh + collision
+  terrain_generator.gd
   vegetation_spawner.gd
-  collectible.gd
-  world.gd / hud.gd / pause_menu.gd / main_menu.gd
-LICENSE                # MIT
-CREDITS.md             # Attribution notes
+  world.gd / player.gd / collectible.gd
+  ambient_audio.gd / water_plane.gd / atmosphere_fx.gd
+  game_manager.gd / hud.gd / pause_menu.gd / main_menu.gd
 ```
 
 ## Commercial use
 
-This project is released under the **MIT License**. You may use it in commercial products, closed-source games, and asset marketplaces, provided you keep the copyright/license notice. Godot Engine itself is MIT-licensed; see [CREDITS.md](CREDITS.md).
+**MIT License**. You may use this in commercial products provided you keep the copyright notice. Godot Engine is also MIT — see [CREDITS.md](CREDITS.md).
 
-## Limitations (prototype scope)
+## Honest limitations
 
-- Indie visuals: solid-color / noise materials, no PBR texture packs or foliage LODs
-- Single continuous terrain chunk (not streamed open-world tiles)
+- Still indie/procedural: primitive meshes + noise materials, not scanned PBR foliage
+- Single terrain chunk (not streamed open-world tiles)
+- Volumetric fog + 8K shadows are GPU-heavy; lower shadow size if needed
+- No day/night cycle (fixed photographic golden-hour)
+- Water is a single stylized plane (no full fluid sim / caustics)
 - No NPCs, combat, inventory, or save system
-- Crystal placements are deterministic per seed but not marked on a minimap
 
 ## Contributing
 
-PRs welcome: denser biomes, day/night cycle, animals, quests, or mobile export presets.
+PRs welcome: Terrain3D integration, true day cycle, animals, quests, or mobile presets.
