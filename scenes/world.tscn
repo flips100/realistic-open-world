@@ -1,0 +1,42 @@
+[gd_scene load_steps=7 format=3 uid="uid://bqworldscene01"]
+
+[ext_resource type="Script" path="res://scripts/world.gd" id="1_world"]
+[ext_resource type="Script" path="res://scripts/terrain_generator.gd" id="2_terrain"]
+[ext_resource type="Script" path="res://scripts/vegetation_spawner.gd" id="3_veg"]
+[ext_resource type="PackedScene" uid="uid://bqhudui00001" path="res://scenes/ui/hud.tscn" id="4_hud"]
+[ext_resource type="PackedScene" uid="uid://bqpausemenu01" path="res://scenes/ui/pause_menu.tscn" id="5_pause"]
+
+[sub_resource type="Environment" id="Environment_placeholder"]
+background_mode = 1
+background_color = Color(0.45, 0.6, 0.75, 1)
+
+[node name="World" type="Node3D"]
+script = ExtResource("1_world")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_placeholder")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 40, 80, 30)
+light_color = Color(1, 0.96, 0.88, 1)
+light_energy = 1.35
+shadow_enabled = true
+directional_shadow_mode = 1
+directional_shadow_max_distance = 280.0
+
+[node name="FillLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.707107, -0.353553, -0.612372, 0, 0.866025, -0.5, 0.707107, -0.353553, -0.612372, -20, 40, -30)
+light_color = Color(0.55, 0.65, 0.85, 1)
+light_energy = 0.25
+shadow_enabled = false
+
+[node name="Terrain" type="Node3D" parent="."]
+script = ExtResource("2_terrain")
+
+[node name="Vegetation" type="Node3D" parent="."]
+script = ExtResource("3_veg")
+terrain_path = NodePath("../Terrain")
+
+[node name="HUD" parent="." instance=ExtResource("4_hud")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("5_pause")]
