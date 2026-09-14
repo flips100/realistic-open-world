@@ -14,7 +14,6 @@ void fragment() {
 	vec2 uv = vec2(UV.x * uv_scale, UV.y * uv_scale * vertical_stretch);
 	vec3 tex = texture(albedo_tex, uv).rgb;
 	float rtex = texture(rough_tex, uv).r;
-	// Vertical bark streaks
 	float streak = texture(albedo_tex, vec2(UV.x * 0.5, UV.y * 6.0)).r;
 	ALBEDO = albedo_color.rgb * mix(vec3(0.78), tex, 0.75) * mix(0.88, 1.08, streak);
 	ROUGHNESS = clamp(mix(roughness, rtex, 0.45), 0.4, 1.0);
