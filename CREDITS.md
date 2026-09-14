@@ -20,8 +20,14 @@ All gameplay meshes, materials, shaders, lighting, terrain, vegetation, water, U
 | Vegetation | Primitive meshes + `bark.gdshader` / `foliage_wind.gdshader` + MultiMesh grass tufts -- original |
 | Water | Subdivided `PlaneMesh` + `water.gdshader` -- original |
 | Atmosphere | GPU particles (pollen, ground haze), volumetric fog -- original |
-| Sky / lighting | `PhysicalSkyMaterial`, DirectionalLight3D (~5200K), ACES, SSAO, SSIL, SSR, auto-exposure -- Godot built-ins (MIT) |
+| Sky / lighting | `ProceduralSkyMaterial` + Compatibility fallback, DirectionalLight3D (golden hour), filmic/ACES tonemap, optional SSAO/SSIL/SSR -- Godot built-ins (MIT) |
+| Player | Assembled MeshInstance3D humanoid + face albedo from user reference photo -- see likeness note below |
 | Audio | Runtime `AudioStreamGenerator` wind + code-generated WAV footsteps -- original |
 | Icon | Hand-authored SVG (CC0 / public domain dedication for the icon artwork; project overall remains MIT) |
 
 No external CC0 packs are bundled; none are required to build or ship commercially under MIT.
+
+## Player reference likeness
+
+- `assets/player/reference_person.jpg` — user-supplied reference photograph used as face/albedo guidance for the procedural humanoid player (blue PREFECT blazer uniform look).
+- The MIT license of this repository covers code and generated mesh/material work. **It does not transfer portrait, publicity, or commercial likeness rights** in the photographed person. Anyone redistributing or selling a game that uses this recognizable likeness must clear those rights themselves.
