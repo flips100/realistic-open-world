@@ -1,5 +1,5 @@
 extends CanvasLayer
-## In-game HUD: crystal count, objective, win banner.
+## Minimal immersive HUD: crystal count, soft objective, win banner.
 
 @onready var crystal_label: Label = %CrystalLabel
 @onready var objective_label: Label = %ObjectiveLabel
@@ -15,22 +15,30 @@ func _ready() -> void:
 	GameManager.game_won.connect(_on_game_won)
 	menu_btn.pressed.connect(_on_menu)
 	_on_crystals_changed(GameManager.crystals_collected, GameManager.TOTAL_CRYSTALS)
+	# Fade objective after a few seconds for immersion
+	var tw := create_tween()
+	tw.tween_interval(8.0)
+	tw.tween_property(objective_label, "modulate:a", 0.35, 1.5)
 
 
 func _on_crystals_changed(collected: int, total: int) -> void:
-	crystal_label.text = "Crystals: %d / %d" % [collected, total]
+	crystal_label.text = "%d / %d" % [collected, total]
 	var remaining := total - collected
+	objjective_label.modulate.a = 1.0
 	if remaining > 0:
-		objective_label.text = "Explore the valley and collect %d more glowing crystal%s." % [
+		objjective_label.text = "Find %d crystal%s hidden across the valley" % [
 			remaining, "s" if remaining != 1 else ""
 		]
 	else:
-		objective_label.text = "All crystals found!"
+		objjective_label.text = "All crystals recovered"
+	var tw := create_tween()
+	tw.tween_interval(5.0)
+	tw.tween_property(objective_label, "modulate:a", 0.3, 1.2)
 
 
 func _on_game_won() -> void:
 	win_panel.visible = true
-	win_label.text = "Valley Restored!\nYou found every crystal."
+	win_label.text = "Valley Restored\nEvery crystal found."
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	var player := get_tree().get_first_node_in_group("player")
 	if player and player.has_method("set_control_enabled"):
