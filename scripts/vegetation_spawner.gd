@@ -3,12 +3,12 @@ extends Node3D
 
 @export var terrain_path: NodePath
 
-const TREE_COUNT := 520
-const PINE_COUNT := 260
-const ROCK_COUNT := 280
-const BUSH_COUNT := 400
-const GRASS_TUFT_COUNT := 2800
-const SPREAD := 240.0
+const TREE_COUNT := 170
+const PINE_COUNT := 90
+const ROCK_COUNT := 110
+const BUSH_COUNT := 150
+const GRASS_TUFT_COUNT := 700
+const SPREAD := 255.0
 
 
 func _ready() -> void:
