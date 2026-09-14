@@ -1,22 +1,40 @@
-[gd_scene load_steps=3 format=3 uid="uid://bqmainmenu001"]
+[gd_scene load_steps=4 format=3 uid="uid://bqmainmenu001"]
 
 [ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_menu"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.06, 0.08, 0.1, 0.88)
+bg_color = Color(0.05, 0.08, 0.1, 0.78)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.55, 0.65, 0.7, 0.35)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-content_margin_left = 36
-content_margin_top = 32
-content_margin_right = 36
-content_margin_bottom = 32
+border_color = Color(0.65, 0.78, 0.85, 0.45)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+content_margin_left = 40
+content_margin_top = 36
+content_margin_right = 40
+content_margin_bottom = 36
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn"]
+bg_color = Color(0.22, 0.42, 0.4, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.85, 0.8, 0.5)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 16
+content_margin_top = 10
+content_margin_right = 16
+content_margin_bottom = 10
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -34,7 +52,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.22, 0.32, 0.38, 1)
+color = Color(0.28, 0.42, 0.52, 1)
 
 [node name="WarmOverlay" type="ColorRect" parent="."]
 layout_mode = 1
@@ -43,7 +61,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.55, 0.35, 0.15, 0.22)
+mouse_filter = 2
+color = Color(0.55, 0.35, 0.15, 0.18)
 
 [node name="GradientOverlay" type="ColorRect" parent="."]
 layout_mode = 1
@@ -52,7 +71,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.04, 0.08, 0.06, 0.4)
+mouse_filter = 2
+color = Color(0.04, 0.08, 0.1, 0.32)
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -72,40 +92,44 @@ theme_override_constants/separation = 14
 
 [node name="Title" type="Label" parent="Center/Panel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.94, 0.9, 1)
-theme_override_font_sizes/font_size = 40
+theme_override_colors/font_color = Color(0.96, 0.95, 0.9, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.45)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 42
 text = "Realistic Open World"
 horizontal_alignment = 1
 
 [node name="Subtitle" type="Label" parent="Center/Panel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.82, 0.75, 1)
+theme_override_colors/font_color = Color(0.82, 0.88, 0.82, 1)
 theme_override_font_sizes/font_size = 15
-text = "Photoreal-leaning procedural valley (v1.2). Collect 8 crystals to restore the land."
+text = "v1.3 indie valley — brighter daylight, humanoid explorer, denser woods. Collect 8 crystals."
 horizontal_alignment = 1
 autowrap_mode = 2
 
 [node name="Spacer" type="Control" parent="Center/Panel/VBox"]
-custom_minimum_size = Vector2(0, 10)
+custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 
 [node name="StartButton" type="Button" parent="Center/Panel/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(280, 48)
+custom_minimum_size = Vector2(300, 52)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_font_sizes/font_size = 19
 text = "Enter the Valley"
 
 [node name="QuitButton" type="Button" parent="Center/Panel/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(280, 40)
+custom_minimum_size = Vector2(300, 42)
 layout_mode = 2
 text = "Quit"
 
 [node name="Footer" type="Label" parent="Center/Panel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 0.58, 0.6, 1)
+theme_override_colors/font_color = Color(0.6, 0.65, 0.68, 1)
 theme_override_font_sizes/font_size = 11
 text = "WASD | Mouse | Shift sprint | Space jump | Esc pause
-Forward+ recommended | MIT License"
+Recommend Forward+ on a real GPU | MIT License"
 horizontal_alignment = 1
