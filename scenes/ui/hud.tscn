@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://bqhudui00001"]
+[gd_scene load_steps=6 format=3 uid="uid://bqhudui00001"]
 
 [ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
 
@@ -38,6 +38,24 @@ content_margin_bottom = 30
 shadow_color = Color(0, 0, 0, 0.4)
 shadow_size = 14
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stamina_bg"]
+bg_color = Color(0.08, 0.1, 0.12, 0.65)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+content_margin_left = 2
+content_margin_top = 2
+content_margin_right = 2
+content_margin_bottom = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stamina_fill"]
+bg_color = Color(0.35, 0.85, 0.65, 0.95)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
 [node name="HUD" type="CanvasLayer"]
 layer = 10
 script = ExtResource("1_hud")
@@ -57,30 +75,89 @@ theme_override_constants/margin_bottom = 18
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="CrystalPanel" type="PanelContainer" parent="Margin/VBox"]
+[node name="TopRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CrystalPanel" type="PanelContainer" parent="Margin/VBox/TopRow"]
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_crystal")
 
-[node name="CrystalRow" type="HBoxContainer" parent="Margin/VBox/CrystalPanel"]
+[node name="CrystalRow" type="HBoxContainer" parent="Margin/VBox/TopRow/CrystalPanel"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="CrystalIcon" type="Label" parent="Margin/VBox/CrystalPanel/CrystalRow"]
+[node name="CrystalIcon" type="Label" parent="Margin/VBox/TopRow/CrystalPanel/CrystalRow"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.92, 1.0, 1)
 theme_override_font_sizes/font_size = 18
 text = "◆"
 
-[node name="CrystalLabel" type="Label" parent="Margin/VBox/CrystalPanel/CrystalRow"]
+[node name="CrystalLabel" type="Label" parent="Margin/VBox/TopRow/CrystalPanel/CrystalRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.88, 0.96, 1.0, 0.98)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 20
-text = "0 / 8"
+theme_override_font_sizes/font_size = 18
+text = "0 / 8  crystals"
+
+[node name="FlowerPanel" type="PanelContainer" parent="Margin/VBox/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_crystal")
+
+[node name="FlowerLabel" type="Label" parent="Margin/VBox/TopRow/FlowerPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.75, 0.88, 0.95)
+theme_override_font_sizes/font_size = 15
+text = "0 / 5  flowers"
+
+[node name="Spacer" type="Control" parent="Margin/VBox/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CompassLabel" type="Label" parent="Margin/VBox/TopRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.92, 1.0, 0.9)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.55)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 16
+text = "◆  ↑"
+horizontal_alignment = 2
+
+[node name="VersionLabel" type="Label" parent="Margin/VBox/TopRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.78, 0.85, 0.55)
+theme_override_font_sizes/font_size = 12
+text = "v2.0"
+
+[node name="StaminaRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="StaminaCaption" type="Label" parent="Margin/VBox/StaminaRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 0.8, 0.75)
+theme_override_font_sizes/font_size = 12
+text = "Stamina"
+
+[node name="StaminaBar" type="ProgressBar" parent="Margin/VBox/StaminaRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 14)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_styles/background = SubResource("StyleBoxFlat_stamina_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_stamina_fill")
+max_value = 100.0
+value = 100.0
+show_percentage = false
 
 [node name="ObjectiveLabel" type="Label" parent="Margin/VBox"]
 unique_name_in_owner = true
@@ -89,8 +166,9 @@ theme_override_colors/font_color = Color(0.92, 0.94, 0.96, 0.92)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.55)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 14
-text = "Explore the valley — find all 8 crystals"
+theme_override_font_sizes/font_size = 13
+text = "Explore the valley — collect 8 crystals. Visit the lakeside shrine for guidance."
+autowrap_mode = 2
 
 [node name="Hint" type="Label" parent="Margin"]
 layout_mode = 2
@@ -98,7 +176,7 @@ size_flags_horizontal = 8
 size_flags_vertical = 8
 theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 0.5)
 theme_override_font_sizes/font_size = 12
-text = "Esc  Pause"
+text = "WASD · Mouse · Shift sprint · Space jump · E interact · Esc pause"
 
 [node name="WinPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true
@@ -108,10 +186,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -220.0
-offset_top = -110.0
-offset_right = 220.0
-offset_bottom = 110.0
+offset_left = -260.0
+offset_top = -140.0
+offset_right = 260.0
+offset_bottom = 140.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_win")
@@ -124,7 +202,7 @@ theme_override_constants/separation = 18
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.97, 1.0, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 22
 text = "Valley Restored"
 horizontal_alignment = 1
 
