@@ -218,7 +218,6 @@ func _spawn_pines(terrain: Node) -> void:
 	for i in range(count):
 		var xf: Transform3D = transforms[i]
 		var trunk_xf := xf
-		var trunk_xf := xf
 		trunk_xf.origin += xf.basis.y * 2.5
 		trunk_mm.set_instance_transform(i, trunk_xf)
 		for layer in range(layers):
